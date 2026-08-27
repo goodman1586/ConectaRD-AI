@@ -70,7 +70,13 @@ let businessOrders=[];
 const money=n=>'RD$'+Number(n).toLocaleString('es-DO');
 
 function renderProducts(){
-products.innerHTML=productsData.map((p,i)=>`<div class="product"><b>${p[0]}</b><div class="price">${money(p[1])}</div><button class="soft" onclick="add(${i})">Agregar</button></div>`).join('');
+  products.innerHTML = productsData.map((p,i) => `
+    <div class="product">
+      <b>${p[0]}</b>
+      <div class="price">${money(p[1])}</div>
+      <button type="button" onclick="add(${i})">Agregar</button>
+    </div>
+  `).join('');
 }
 function add(i){let n=productsData[i][0];cart[n]=(cart[n]||0)+1;renderCart();}
 function renderCart(){
