@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ConectaRD AI 5.0 — Delivery</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#17202a}
+header{background:#111827;color:#fff;padding:15px 18px;display:flex;justify-content:space-between;align-items:center}
+.wrap{max-width:1050px;margin:auto;padding:16px}.card{background:#fff;border-radius:16px;padding:17px;margin-bottom:15px;box-shadow:0 3px 15px #0000000b}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.products{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.product{border:1px solid #e1e5ea;border-radius:12px;padding:13px}.price{font-weight:bold;margin:7px 0 10px}
+button{border:0;border-radius:9px;padding:11px 13px;font-weight:bold;cursor:pointer}.primary{background:#111827;color:#fff}.soft{background:#edf1f5}.green{background:#dcfce7;color:#166534}
+input,textarea,select{width:100%;padding:11px;border:1px solid #d5dae1;border-radius:9px;margin:5px 0 11px}
+.line{display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:9px 0}.total{font-size:20px;font-weight:bold;display:flex;justify-content:space-between;margin-top:12px}
+.location{border:1px dashed #9ca3af;border-radius:12px;padding:13px;background:#fafafa}.muted{color:#667085;font-size:14px}.status{padding:6px 9px;border-radius:99px;background:#e8eef7;font-size:12px}
+.hidden{display:none}@media(max-width:720px){.grid,.products{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><b>ConectaRD AI</b><span>MVP 5.0 · Delivery</span></header>
+<div class="wrap">
+<div class="card">
+<h2>🏪 Panel del negocio</h2>
+<p class="muted">Vista de prueba para gestionar pedidos de delivery.</p>
+<div id="dashboard"></div>
+</div>
+
+<div class="card">
+<h2>🛍️ Haz tu pedido</h2>
+<p class="muted">Prueba el flujo de compra y entrega.</p>
+<div class="products" id="products"></div>
+</div>
+
+<div class="grid">
+<div class="card">
+<h2>📦 Tu pedido</h2><div id="cart"><p class="muted">No has agregado productos.</p></div>
+<div class="total"><span>Total productos</span><span id="subtotal">RD$0</span></div>
+</div>
+
+<div class="card">
+<h2>🚚 Datos de entrega</h2>
+<input id="customer" placeholder="Nombre del cliente">
+<input id="phone" placeholder="WhatsApp">
+<select id="delivery" onchange="deliveryChanged()">
+<option value="delivery">🚚 Delivery</option>
+<option value="pickup">🏪 Recoger en el negocio</option>
+</select>
+<div id="deliveryBox">
+<div class="location">
+<b>📍 Ubicación</b>
+<p class="muted">Comparte tu ubicación actual para indicar dónde hacer la entrega.</p>
+<button class="primary" onclick="getLocation()">Compartir mi ubicación</button>
+<p id="locStatus" class="muted">Ubicación pendiente.</p>
+</div>
+<label>Instrucciones para el delivery</label>
+<textarea id="notes" placeholder="Ej.: casa azul, segundo piso..."></textarea>
+</div>
+<button class="green" style="width:100%;margin-top:5px" onclick="confirmOrder()">Confirmar pedido</button>
+</div>
+</div>
+
+<div class="card hidden" id="result">
+<h2>✅ Pedido confirmado</h2><div id="receipt"></div>
+</div>
+</div>
+<script>
+const productsData=[['Tostada',50],['Jugo natural',40],['Batida',80],['Queque',10]];
+let cart={}, coords=null;
+let businessOrders=[];
+const money=n=>'RD$'+Number(n).toLocaleString('es-DO');
+
+function renderProducts(){
+products.innerHTML=productsData.map((p,i)=>`<div class="product"><b>${p[0]}</b><div class="price">${money(p[1])}</div><button class="soft" onclick="add(${i})">Agregar</button></div>`).join('');
+}
+function add(i){let n=productsData[i][0];cart[n]=(cart[n]||0)+1;renderCart();}
+function renderCart(){
+let ks=Object.keys(cart);
+cart.innerHTML=ks.length?ks.map(k=>{let p=productsData.find(x=>x[0]===k);return `<div class="line"><span>${cart[k]} × ${k}</span><b>${money(cart[k]*p[1])}</b></div>`}).join(''):'<p class="muted">No has agregado productos.</p>';
+let s=ks.reduce((a,k)=>a+cart[k]*productsData.find(x=>x[0]===k)[1],0);subtotal.textContent=money(s);
+}
+function deliveryChanged(){deliveryBox.classList.toggle('hidden',delivery.value!=='delivery');}
+function getLocation(){
+locStatus.textContent='Solicitando permiso de ubicación...';
+if(!navigator.geolocation){locStatus.textContent='Este navegador no permite geolocalización.';return}
+navigator.geolocation.getCurrentPosition(pos=>{
+coords={lat:pos.coords.latitude,lng:pos.coords.longitude,accuracy:Math.round(pos.coords.accuracy)};
+locStatus.textContent=`✅ Ubicación compartida. Precisión aproximada: ${coords.accuracy} m`;
+},err=>{
+locStatus.textContent='No se pudo obtener la ubicación. Puedes intentar nuevamente o escribir instrucciones.';
+},{enableHighAccuracy:true,timeout:10000,maximumAge:0});
+}
+function confirmOrder(){
+let ks=Object.keys(cart),name=customer.value.trim(),tel=phone.value.trim();
+if(!ks.length)return alert('Agrega al menos un producto.');
+if(!name||!tel)return alert('Completa nombre y WhatsApp.');
+if(delivery.value==='delivery'&&!coords)return alert('Comparte tu ubicación para el delivery.');
+let itemsText=ks.map(k=>cart[k]+' × '+k).join(', ');
+let sub=ks.reduce((a,k)=>a+cart[k]*productsData.find(x=>x[0]===k)[1],0);
+let fee=delivery.value==='delivery'?50:0,total=sub+fee;
+let locationText=coords?`Lat: ${coords.lat.toFixed(6)}, Lng: ${coords.lng.toFixed(6)}`:'Recoger en el negocio';
+result.classList.remove('hidden');
+receipt.innerHTML=`<div class="line"><span>Cliente</span><b>${escapeHtml(name)}</b></div>
+<div class="line"><span>WhatsApp</span><b>${escapeHtml(tel)}</b></div>
+<div class="line"><span>Productos</span><b>${ks.map(k=>cart[k]+'× '+k).join(', ')}</b></div>
+<div class="line"><span>Delivery</span><b>${delivery.value==='delivery'?money(fee):'Recogida'}</b></div>
+<div class="line"><span>Ubicación</span><b>${locationText}</b></div>
+<div class="line"><span>Instrucciones</span><b>${escapeHtml(notes.value||'—')}</b></div>
+<div class="total"><span>Total</span><span>${money(total)}</span></div>
+<p class="muted">En la versión comercial, estos datos pasarán automáticamente al panel del negocio y WhatsApp.</p>`;
+result.scrollIntoView({behavior:'smooth'});cart={};renderCart();
+businessOrders.unshift({
+ id: businessOrders.length+1,
+ customer:name,
+ phone:tel,
+ items:ks.map(k=>cart[k]+' × '+k).join(', '),
+ total:total,
+ location:locationText,
+ notes:notes.value||'',
+ status:'Nuevo'
+});
+renderDashboard();
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function renderDashboard(){
+ const box=document.getElementById('dashboard');
+ if(!businessOrders.length){
+   box.innerHTML='<p class="muted">Todavía no hay pedidos. Haz un pedido abajo para verlo aquí.</p>';
+   return;
+ }
+ box.innerHTML=businessOrders.map(o=>`
+ <div style="border:1px solid #e2e6eb;border-radius:12px;padding:13px;margin:9px 0">
+   <div style="display:flex;justify-content:space-between;gap:10px">
+     <b>Pedido #${o.id} · ${escapeHtml(o.customer)}</b>
+     <select onchange="changeStatus(${o.id},this.value)">
+       ${['Nuevo','Preparando','En camino','Entregado'].map(s=>`<option ${s===o.status?'selected':''}>${s}</option>`).join('')}
+     </select>
+   </div>
+   <p class="muted">📱 ${escapeHtml(o.phone)}<br>📦 ${escapeHtml(o.items)}<br>📍 ${escapeHtml(o.location)}<br>📝 ${escapeHtml(o.notes)}</p>
+   <b>${money(o.total)}</b>
+   ${o.location.startsWith('Lat:')?`<button class="soft" style="margin-left:8px" onclick="openMap('${o.location}')">Abrir ubicación</button>`:''}
+ </div>`).join('');
+}
+function changeStatus(id,status){
+ const o=businessOrders.find(x=>x.id===id); if(o)o.status=status;
+ renderDashboard();
+}
+function openMap(location){
+ const m=location.match(/Lat:\s*([-\d.]+),\s*Lng:\s*([-\d.]+)/);
+ if(m) window.open('https://www.google.com/maps?q='+m[1]+','+m[2],'_blank');
+}
+renderProducts();renderCart();renderDashboard();
+</script>
+</body>
+</html>
