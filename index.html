@@ -1,160 +1,373 @@
-<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ConectaRD AI 5.0 — Delivery</title>
+<!doctype html> 
+<html lang="es"> 
+<head> 
+<meta charset="utf-8"> 
+<meta name="viewport" content="width=device-width,initial-scale=1"> 
+<title>ConectaRD AI 5.3 - Delivery</title> 
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#17202a}
-header{background:#111827;color:#fff;padding:15px 18px;display:flex;justify-content:space-between;align-items:center}
-.wrap{max-width:1050px;margin:auto;padding:16px}.card{background:#fff;border-radius:16px;padding:17px;margin-bottom:15px;box-shadow:0 3px 15px #0000000b}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.products{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.product{border:1px solid #e1e5ea;border-radius:12px;padding:13px}.price{font-weight:bold;margin:7px 0 10px}
-button{border:0;border-radius:9px;padding:11px 13px;font-weight:bold;cursor:pointer}.primary{background:#111827;color:#fff}.soft{background:#edf1f5}.green{background:#dcfce7;color:#166534}
-input,textarea,select{width:100%;padding:11px;border:1px solid #d5dae1;border-radius:9px;margin:5px 0 11px}
-.line{display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:9px 0}.total{font-size:20px;font-weight:bold;display:flex;justify-content:space-between;margin-top:12px}
-.location{border:1px dashed #9ca3af;border-radius:12px;padding:13px;background:#fafafa}.muted{color:#667085;font-size:14px}.status{padding:6px 9px;border-radius:99px;background:#e8eef7;font-size:12px}
-.hidden{display:none}@media(max-width:720px){.grid,.products{grid-template-columns:1fr}}
-</style>
-</head>
-<body>
-<header><b>ConectaRD AI</b><span>MVP 5.0 · Delivery</span></header>
+*{box-sizing:border-box} 
+body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#17202a;padding-bottom:90px} 
+header{background:#111827;color:#fff;padding:15px 
+18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20} 
+header b{font-size:18px}.muted{color:#667085} 
+.wrap{max-width:1050px;margin:auto;padding:16px} 
+.card{background:#fff;border-radius:16px;padding:17px;margin-bottom:15px;box-shadow:0 2px 10px rgba(0,0,0,.05)} 
+h2{margin:0 0 10px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px} 
+.products{display:grid;grid-template-columns:repeat(2,1fr);gap:12px} 
+.product{border:1px solid #e1e5ea;border-radius:12px;padding:14px} 
+.product-name{font-size:18px;font-weight:700} 
+.price{font-weight:700;margin:7px 0 10px} 
+button{border:0;border-radius:10px;padding:12px 14px;font-weight:700;cursor:pointer;font-size:15px} 
+button.primary{background:#111827;color:#fff} 
+button.green{background:#d9fbe5;color:#176b3a} 
+button.soft{background:#eef2f7;color:#111827} 
+input,textarea,select{width:100%;padding:13px;border:1px solid #d5dae1;border-radius:10px;margin:5px 0 
+10px;font:inherit} 
+textarea{min-height:85px} 
+.hidden{display:none} 
+.line{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #eee} 
+.total{display:flex;justify-content:space-between;font-weight:700;font-size:20px;margin-top:10px} 
+.qty{display:flex;align-items:center;gap:6px} 
+.qty button{padding:7px 10px} 
+.badge{display:inline-flex;align-items:center;justify-content:center;background:#111827;color:#fff;border-radius:999px;m 
+in-width:28px;height:28px;padding:0 8px;margin-left:6px} 
+.location{border:1px dashed #9ca3af;border-radius:12px;padding:13px;background:#fafafa} 
+.order{border:1px solid #e2e6eb;border-radius:12px;padding:13px;margin:9px 0} 
+.order-head{display:flex;justify-content:space-between;gap:10px;align-items:center} 
+.orderbar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;box-shadow:0 -3px 14px 
+rgba(0,0,0,.12);z-index:30} 
+.orderbar-inner{max-width:1050px;margin:auto;padding:10px 
+16px;display:flex;align-items:center;justify-content:space-between;gap:12px} 
+.orderbar button{background:#111827;color:#fff;min-width:150px} 
+#addStatus{min-height:22px;margin-top:8px;font-weight:700} 
+.success{color:#176b3a}.error{color:#b42318} 
+@media(max-width:720px){.grid,.products{grid-template-columns:1fr}.orderbar-inner{padding:9px 12px}.orderbar 
+button{min-width:130px}} 
+</style> 
+</head> 
+<body> 
+<header><b>ConectaRD AI</b><span>MVP 5.3 · Delivery</span></header>
 <div class="wrap">
-<div class="card">
-<h2>🏪 Panel del negocio</h2>
-<p class="muted">Vista de prueba para gestionar pedidos de delivery.</p>
-<div id="dashboard"></div>
+<div class="card"> 
+<h2>s Panel del negocio</h2> 
+<p class="muted">Los pedidos confirmados aparecen aquí.</p> 
+<div id="dashboard"></div> 
 </div>
-
-<div class="card">
-<h2>🛍️ Haz tu pedido</h2>
-<p class="muted">Prueba el flujo de compra y entrega.</p>
-<div class="products" id="products"></div>
+<div class="card"> 
+<h2>ss Haz tu pedido</h2> 
+<p class="muted">Toca <b>Agregar al carrito</b> para seleccionar productos.</p> 
+<div id="addStatus"></div> 
+<div class="products" id="products"></div> 
 </div>
-
-<div class="grid">
-<div class="card">
-<h2>📦 Tu pedido</h2><div id="cart"><p class="muted">No has agregado productos.</p></div>
-<div class="total"><span>Total productos</span><span id="subtotal">RD$0</span></div>
+<div class="grid"> 
+<div class="card" id="pedidoCard"> 
+<h2>s Tu pedido <span id="cartCount" class="badge">0</span></h2> 
+<div id="cart"><p class="muted">No has agregado productos.</p></div> 
+<div class="total"><span>Total productos</span><span id="subtotal">RD$0</span></div> 
 </div>
-
-<div class="card">
-<h2>🚚 Datos de entrega</h2>
-<input id="customer" placeholder="Nombre del cliente">
-<input id="phone" placeholder="WhatsApp">
-<select id="delivery" onchange="deliveryChanged()">
-<option value="delivery">🚚 Delivery</option>
-<option value="pickup">🏪 Recoger en el negocio</option>
+<div class="card"> 
+<h2>s Datos de entrega</h2> 
+<input id="customer" placeholder="Nombre del cliente" autocomplete="name">
+<input id="phone" type="tel" placeholder="WhatsApp" autocomplete="tel">
+<select id="delivery"> 
+<option value="delivery">s Delivery</option> 
+<option value="pickup">s Recoger en el negocio</option> 
 </select>
-<div id="deliveryBox">
-<div class="location">
-<b>📍 Ubicación</b>
-<p class="muted">Comparte tu ubicación actual para indicar dónde hacer la entrega.</p>
-<button class="primary" onclick="getLocation()">Compartir mi ubicación</button>
+<div id="deliveryBox"> 
+<div class="location"> 
+<b>s Ubicación de entrega</b> 
+<p class="muted">Comparte el GPS o escribe la dirección si el navegador no permite la ubicación.</p> 
+<button type="button" id="locationBtn" class="primary">s Compartir mi ubicación</button> 
 <p id="locStatus" class="muted">Ubicación pendiente.</p>
+<label>Dirección / ubicación</label> 
+<input id="manualLocation" placeholder="Ej.: Av. España #25, casa azul..." autocomplete="street-address">
+<label>Enlace de Google Maps (opcional)</label> 
+<input id="mapLink" type="url" placeholder="Pega aquí el enlace de Google Maps"> 
+<button type="button" id="mapsBtn" class="soft">ss Abrir Google Maps</button> 
 </div>
-<label>Instrucciones para el delivery</label>
-<textarea id="notes" placeholder="Ej.: casa azul, segundo piso..."></textarea>
+<label>Instrucciones para el delivery</label> 
+<textarea id="notes" placeholder="Ej.: casa azul, segundo piso..."></textarea> 
 </div>
-<button class="green" style="width:100%;margin-top:5px" onclick="confirmOrder()">Confirmar pedido</button>
+<button type="button" id="confirmBtn" class="green" style="width:100%;margin-top:5px">Confirmar pedido</button> 
+</div> 
 </div>
+<div class="card hidden" id="result"> 
+<h2>s Pedido confirmado</h2> 
+<div id="receipt"></div> 
+</div> 
 </div>
-
-<div class="card hidden" id="result">
-<h2>✅ Pedido confirmado</h2><div id="receipt"></div>
+<div class="orderbar"> 
+<div class="orderbar-inner"> 
+<div><b>s Pedido</b> <span id="barItems">0 productos · </span><strong id="barTotal">RD$0</strong></div> 
+<button type="button" id="viewOrderBtn">Ver pedido</button> 
+</div> 
 </div>
-</div>
-<script>
-const productsData=[['Tostada',50],['Jugo natural',40],['Batida',80],['Queque',10]];
-let cart={}, coords=null;
-let businessOrders=[];
-const money=n=>'RD$'+Number(n).toLocaleString('es-DO');
-
-function renderProducts(){
-  products.innerHTML = productsData.map((p,i) => `
-    <div class="product">
-      <b>${p[0]}</b>
-      <div class="price">${money(p[1])}</div>
-      <button type="button" onclick="add(${i})">Agregar</button>
-    </div>
-  `).join('');
-}
-function add(i){let n=productsData[i][0];cart[n]=(cart[n]||0)+1;renderCart();}
-function renderCart(){
-let ks=Object.keys(cart);
-cart.innerHTML=ks.length?ks.map(k=>{let p=productsData.find(x=>x[0]===k);return `<div class="line"><span>${cart[k]} × ${k}</span><b>${money(cart[k]*p[1])}</b></div>`}).join(''):'<p class="muted">No has agregado productos.</p>';
-let s=ks.reduce((a,k)=>a+cart[k]*productsData.find(x=>x[0]===k)[1],0);subtotal.textContent=money(s);
-}
-function deliveryChanged(){deliveryBox.classList.toggle('hidden',delivery.value!=='delivery');}
-function getLocation(){
-locStatus.textContent='Solicitando permiso de ubicación...';
-if(!navigator.geolocation){locStatus.textContent='Este navegador no permite geolocalización.';return}
-navigator.geolocation.getCurrentPosition(pos=>{
-coords={lat:pos.coords.latitude,lng:pos.coords.longitude,accuracy:Math.round(pos.coords.accuracy)};
-locStatus.textContent=`✅ Ubicación compartida. Precisión aproximada: ${coords.accuracy} m`;
-},err=>{
-locStatus.textContent='No se pudo obtener la ubicación. Puedes intentar nuevamente o escribir instrucciones.';
-},{enableHighAccuracy:true,timeout:10000,maximumAge:0});
-}
-function confirmOrder(){
-let ks=Object.keys(cart),name=customer.value.trim(),tel=phone.value.trim();
-if(!ks.length)return alert('Agrega al menos un producto.');
-if(!name||!tel)return alert('Completa nombre y WhatsApp.');
-if(delivery.value==='delivery'&&!coords)return alert('Comparte tu ubicación para el delivery.');
-let itemsText=ks.map(k=>cart[k]+' × '+k).join(', ');
-let sub=ks.reduce((a,k)=>a+cart[k]*productsData.find(x=>x[0]===k)[1],0);
-let fee=delivery.value==='delivery'?50:0,total=sub+fee;
-let locationText=coords?`Lat: ${coords.lat.toFixed(6)}, Lng: ${coords.lng.toFixed(6)}`:'Recoger en el negocio';
-result.classList.remove('hidden');
-receipt.innerHTML=`<div class="line"><span>Cliente</span><b>${escapeHtml(name)}</b></div>
-<div class="line"><span>WhatsApp</span><b>${escapeHtml(tel)}</b></div>
-<div class="line"><span>Productos</span><b>${ks.map(k=>cart[k]+'× '+k).join(', ')}</b></div>
-<div class="line"><span>Delivery</span><b>${delivery.value==='delivery'?money(fee):'Recogida'}</b></div>
-<div class="line"><span>Ubicación</span><b>${locationText}</b></div>
-<div class="line"><span>Instrucciones</span><b>${escapeHtml(notes.value||'—')}</b></div>
-<div class="total"><span>Total</span><span>${money(total)}</span></div>
-<p class="muted">En la versión comercial, estos datos pasarán automáticamente al panel del negocio y WhatsApp.</p>`;
-result.scrollIntoView({behavior:'smooth'});cart={};renderCart();
-businessOrders.unshift({
- id: businessOrders.length+1,
- customer:name,
- phone:tel,
- items:ks.map(k=>cart[k]+' × '+k).join(', '),
- total:total,
- location:locationText,
- notes:notes.value||'',
- status:'Nuevo'
-});
-renderDashboard();
-}
-function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-function renderDashboard(){
- const box=document.getElementById('dashboard');
- if(!businessOrders.length){
-   box.innerHTML='<p class="muted">Todavía no hay pedidos. Haz un pedido abajo para verlo aquí.</p>';
-   return;
- }
- box.innerHTML=businessOrders.map(o=>`
- <div style="border:1px solid #e2e6eb;border-radius:12px;padding:13px;margin:9px 0">
-   <div style="display:flex;justify-content:space-between;gap:10px">
-     <b>Pedido #${o.id} · ${escapeHtml(o.customer)}</b>
-     <select onchange="changeStatus(${o.id},this.value)">
-       ${['Nuevo','Preparando','En camino','Entregado'].map(s=>`<option ${s===o.status?'selected':''}>${s}</option>`).join('')}
-     </select>
-   </div>
-   <p class="muted">📱 ${escapeHtml(o.phone)}<br>📦 ${escapeHtml(o.items)}<br>📍 ${escapeHtml(o.location)}<br>📝 ${escapeHtml(o.notes)}</p>
-   <b>${money(o.total)}</b>
-   ${o.location.startsWith('Lat:')?`<button class="soft" style="margin-left:8px" onclick="openMap('${o.location}')">Abrir ubicación</button>`:''}
- </div>`).join('');
-}
-function changeStatus(id,status){
- const o=businessOrders.find(x=>x.id===id); if(o)o.status=status;
- renderDashboard();
-}
-function openMap(location){
- const m=location.match(/Lat:\s*([-\d.]+),\s*Lng:\s*([-\d.]+)/);
- if(m) window.open('https://www.google.com/maps?q='+m[1]+','+m[2],'_blank');
-}
-renderProducts();renderCart();renderDashboard();
-</script>
-</body>
+<script> 
+'use strict';
+const productsData = [ 
+['Tostada',50], 
+['Jugo natural',40], 
+['Batida',80], 
+['Queque',10] 
+];
+let cartItems = {}; 
+let coords = null;
+const $ = id => document.getElementById(id); 
+const money = n => 'RD$' + Number(n || 0).toLocaleString('es-DO');
+function escapeHtml(value){ 
+return String(value ?? '').replace(/[&<>"']/g, m => ({ 
+'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' 
+} })[m]);
+function getOrders(){ 
+try{return JSON.parse(localStorage.getItem('conectaRD_orders') || '[]')}
+} catch(e){return []} 
+let businessOrders = getOrders();
+function saveOrders(){
+} localStorage.setItem('conectaRD_orders', JSON.stringify(businessOrders));
+function renderProducts(){ 
+$('products').innerHTML = productsData.map((p,i)=>` 
+<div class="product">
+<div class="product-name">${escapeHtml(p[0])}</div> 
+<div class="price">${money(p[1])}</div> 
+<button type="button" class="primary add-product" data-index="${i}">s Agregar al carrito</button> 
+</div> 
+`).join('');
+document.querySelectorAll('.add-product').forEach(btn=>{ 
+btn.addEventListener('click', function(){ 
+addProduct(Number(this.dataset.index)); 
+}); 
+} });
+function addProduct(index){ 
+const product = productsData[index]; 
+if(!product){ 
+$('addStatus').textContent = 's No se encontró el producto.'; 
+$('addStatus').className = 'error'; 
+} return;
+const name = product[0]; 
+cartItems[name] = (cartItems[name] || 0) + 1;
+$('addStatus').textContent = 's ' + name + ' agregado al carrito.'; 
+$('addStatus').className = 'success';
+renderCart();
+} updateOrderBar();
+function changeQuantity(name, amount){ 
+if(!cartItems[name]) return; 
+cartItems[name] += amount;
+if(cartItems[name] <= 0) delete cartItems[name]; 
+renderCart();
+} updateOrderBar();
+function renderCart(){ 
+const keys = Object.keys(cartItems);
+if(!keys.length){ 
+$('cart').innerHTML = '<p class="muted">No has agregado productos.</p>'; 
+$('subtotal').textContent = money(0); 
+$('cartCount').textContent = '0'; 
+} return;
+$('cart').innerHTML = keys.map(name=>{ 
+const p = productsData.find(x=>x[0] === name); 
+const qty = cartItems[name]; 
+return ` 
+<div class="line"> 
+<span><b>${escapeHtml(name)}</b><br><small>${money(p[1])} c/u</small></span> 
+<span class="qty"> 
+<button type="button" class="soft qty-minus" data-name="${escapeHtml(name)}">−</button> 
+<b>${qty}</b> 
+<button type="button" class="soft qty-plus" data-name="${escapeHtml(name)}">+</button> 
+<b>${money(qty*p[1])}</b> 
+</span> 
+</div>`; 
+}).join('');
+document.querySelectorAll('.qty-minus').forEach(btn=>btn.addEventListener('click',()=>changeQuantity(btn.dataset.name,-1 
+))); 
+document.querySelectorAll('.qty-plus').forEach(btn=>btn.addEventListener('click',()=>changeQuantity(btn.dataset.name,1)) 
+);
+const subtotal = keys.reduce((sum,name)=>{ 
+const p = productsData.find(x=>x[0]===name); 
+return sum + cartItems[name]*p[1]; 
+},0);
+const count = keys.reduce((sum,name)=>sum+cartItems[name],0); 
+$('subtotal').textContent = money(subtotal); 
+$('cartCount').textContent = count;}
+function updateOrderBar(){ 
+const keys = Object.keys(cartItems);
+const count = keys.reduce((sum,name)=>sum+cartItems[name],0); 
+const total = keys.reduce((sum,name)=>{ 
+const p = productsData.find(x=>x[0]===name); 
+return sum+cartItems[name]*p[1]; 
+},0);
+$('barItems').textContent = count === 1 ? '1 producto · ' : count + ' productos · '; 
+} $('barTotal').textContent = money(total);
+function goToOrder(){
+} $('pedidoCard').scrollIntoView({behavior:'smooth',block:'center'});
+function deliveryChanged(){ 
+const delivery = $('delivery').value === 'delivery'; 
+$('deliveryBox').classList.toggle('hidden',!delivery); 
+if(!delivery){ 
+coords = null; 
+$('locStatus').textContent = 'No necesaria para recoger en el negocio.'; 
+}else{
+}} $('locStatus').textContent = 'Ubicación pendiente.';
+async function getLocation(){ 
+const status = $('locStatus'); 
+status.textContent = 's Solicitando ubicación...';
+if(!window.isSecureContext){ 
+status.textContent = 's Abre la página desde HTTPS (GitHub Pages).'; 
+return; 
+}if(!navigator.geolocation){
+status.textContent = 's Tu navegador no ofrece GPS. Escribe la dirección manualmente.'; 
+} return;
+try{ 
+if(navigator.permissions?.query){ 
+const permission = await navigator.permissions.query({name:'geolocation'}); 
+if(permission.state === 'denied'){ 
+status.innerHTML = 's Ubicación bloqueada. En Chrome permite Ubicación para este sitio y recarga.'; 
+} return;
+} }catch(e){}
+const success = pos=>{ 
+coords = { 
+lat:Number(pos.coords.latitude), 
+lng:Number(pos.coords.longitude), 
+accuracy:Math.round(pos.coords.accuracy || 0) 
+}; 
+$('manualLocation').value = `Lat: ${coords.lat.toFixed(6)}, Lng: ${coords.lng.toFixed(6)}`; 
+status.innerHTML = `s Ubicación compartida. Precisión aproximada: ${coords.accuracy} m`; 
+};
+const failure = err=>{ 
+coords = null; 
+if(err.code===1) status.textContent='s Permiso rechazado. Permite la ubicación para este sitio.'; 
+else if(err.code===2) status.textContent='ss No se encontró el GPS. Activa la ubicación del teléfono o escribe la 
+dirección.'; 
+else if(err.code===3) status.textContent='ss El GPS tardó demasiado. Intenta otra vez o escribe la dirección.'; 
+else status.textContent='s No se pudo obtener la ubicación.'; 
+};
+navigator.geolocation.getCurrentPosition(success,()=>{ 
+navigator.geolocation.getCurrentPosition(success,failure,{ 
+enableHighAccuracy:false,timeout:30000,maximumAge:60000 
+}); 
+},{ 
+enableHighAccuracy:true,timeout:15000,maximumAge:0});
+function openMaps(){ 
+if(coords){ 
+window.open(`https://www.google.com/maps?q=${coords.lat},${coords.lng}`,'_blank'); 
+return; 
+}const link = $('mapLink').value.trim();
+if(link){ 
+window.open(link,'_blank'); 
+} return;
+} window.open('https://www.google.com/maps/','_blank');
+function confirmOrder(){ 
+const keys = Object.keys(cartItems);
+const name = $('customer').value.trim(); 
+const phone = $('phone').value.trim(); 
+const delivery = $('delivery').value; 
+const notes = $('notes').value.trim(); 
+const manualLocation = $('manualLocation').value.trim(); 
+const mapLink = $('mapLink').value.trim();
+if(!keys.length){ 
+alert('Primero agrega al menos un producto al carrito.'); 
+goToOrder(); 
+} return;
+if(!name || !phone){ 
+alert('Completa nombre y WhatsApp.'); 
+} return;
+if(delivery==='delivery' && !coords && !manualLocation && !mapLink){ 
+alert('Comparte tu ubicación o escribe la dirección de entrega.'); 
+} return;
+const itemsText = keys.map(k=>`${cartItems[k]} × ${k}`).join(', '); 
+const subtotal = keys.reduce((sum,k)=>{ 
+const p=productsData.find(x=>x[0]===k); 
+return sum+cartItems[k]*p[1]; 
+},0); 
+const fee = delivery==='delivery' ? 50 : 0; 
+const total = subtotal+fee; 
+const locationText = coords 
+? `Lat: ${coords.lat.toFixed(6)}, Lng: ${coords.lng.toFixed(6)}` 
+: (manualLocation || mapLink || 'Recoger en el negocio');
+const order = { 
+id: businessOrders.length ? Math.max(...businessOrders.map(o=>Number(o.id)||0))+1 : 1, 
+customer:name, phone, items:itemsText, total, 
+location:locationText, mapLink, notes, 
+status:'Nuevo', 
+createdAt:new Date().toLocaleString('es-DO') 
+};
+businessOrders.unshift(order); 
+saveOrders();
+$('result').classList.remove('hidden'); 
+$('receipt').innerHTML = `
+<div class="line"><span>Cliente</span><b>${escapeHtml(name)}</b></div> 
+<div class="line"><span>WhatsApp</span><b>${escapeHtml(phone)}</b></div> 
+<div class="line"><span>Productos</span><b>${escapeHtml(itemsText)}</b></div> 
+<div class="line"><span>Delivery</span><b>${delivery==='delivery'?'s Delivery':'s Recoger'}</b></div> 
+<div class="line"><span>Ubicación</span><b>${escapeHtml(locationText)}</b></div> 
+<div class="line"><span>Instrucciones</span><b>${escapeHtml(notes||'—')}</b></div> 
+<div class="line"><span>Costo delivery</span><b>${money(fee)}</b></div> 
+<div class="total"><span>Total</span><span>${money(total)}</span></div> 
+<p class="muted">Pedido #${order.id} · ${escapeHtml(order.createdAt)}</p> 
+`;
+cartItems={}; 
+coords=null; 
+$('manualLocation').value='';$('mapLink').value=''; 
+renderCart(); 
+updateOrderBar(); 
+renderDashboard(); 
+} $('result').scrollIntoView({behavior:'smooth'});
+function renderDashboard(){ 
+const box=$('dashboard'); 
+if(!businessOrders.length){ 
+box.innerHTML='<p class="muted">Todavía no hay pedidos.</p>'; 
+} return;
+box.innerHTML=businessOrders.map(o=>` 
+<div class="order"> 
+<div class="order-head"> 
+<b>Pedido #${o.id} · ${escapeHtml(o.customer)}</b> 
+<select class="status-select" data-id="${o.id}"> 
+${['Nuevo','Preparando','En camino','Entregado'].map(s=> 
+`<option value="${s}" ${s===o.status?'selected':''}>${s}</option>` 
+).join('')} 
+</select> 
+</div> 
+<p class="muted"> 
+s ${escapeHtml(o.phone)}<br> 
+s ${escapeHtml(o.items)}<br> 
+s ${escapeHtml(o.location)}<br> 
+s ${escapeHtml(o.notes||'Sin instrucciones')}<br> 
+s ${escapeHtml(o.createdAt)} 
+</p>
+<b>${money(o.total)}</b> 
+${(o.mapLink || String(o.location).startsWith('Lat:')) 
+? `<br><button type="button" class="soft map-order" data-location="${escapeHtml(o.mapLink||o.location)}">s Abrir 
+ubicación</button>` : ''} 
+</div> 
+`).join('');
+document.querySelectorAll('.status-select').forEach(s=>{ 
+s.addEventListener('change',()=>changeStatus(Number(s.dataset.id),s.value)); 
+}); 
+document.querySelectorAll('.map-order').forEach(b=>{ 
+b.addEventListener('click',()=>openSavedMap(b.dataset.location)); 
+} });
+function changeStatus(id,status){ 
+const o=businessOrders.find(x=>Number(x.id)===Number(id)); 
+if(!o)return; 
+o.status=status; 
+saveOrders();
+} renderDashboard();
+function openSavedMap(value){ 
+if(/^https?:\/\//i.test(value)){ 
+} window.open(value,'_blank'); return;
+const m=String(value).match(/Lat:\s*([-\d.]+),\s*Lng:\s*([-\d.]+)/); 
+if(m){ 
+window.open(`https://www.google.com/maps?q=${m[1]},${m[2]}`,'_blank'); 
+}else if(value){
+} } window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value)}`,'_blank');
+$('delivery').addEventListener('change',deliveryChanged); 
+$('locationBtn').addEventListener('click',getLocation); 
+$('mapsBtn').addEventListener('click',openMaps); 
+$('confirmBtn').addEventListener('click',confirmOrder); 
+$('viewOrderBtn').addEventListener('click',goToOrder);
+renderProducts(); 
+renderCart(); 
+updateOrderBar(); 
+renderDashboard(); 
+deliveryChanged();
+</script> 
+</body> 
 </html>
