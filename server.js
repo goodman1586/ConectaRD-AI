@@ -41,11 +41,7 @@ function requireActiveBusiness(req, res, next) {
  req.business = business;
  next();
 }app.get("/", (_req, res) => {
-  res.send(`
-    <h1>ConectaRD AI 7.0</h1>
-    <p>Backend funcionando correctamente.</p>
-    <p><a href="/health">Ver Health Check</a></p>
-  `);
+  res.sendFile(process.cwd() + "/index.html");
 });
 app.get("/health", (_req, res) => {
  res.json({ ok: true, service: "ConectaRD AI 7.0", time: new Date().toISOString() });
