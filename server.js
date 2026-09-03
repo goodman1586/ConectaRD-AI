@@ -279,12 +279,9 @@ app.post("/api/ai", async (req, res) => {
       products.get("anamuya-demo") || [];
 
     const catalogText = catalog
-      .filter((p) => p.available)
-      .map(
-        (p) =>
-          ${p.name}: RD$${p.price}
-      )
-      .join("\n");
+  .filter((p) => p.available)
+  .map((p) => p.name + ": RD$" + p.price)
+  .join("\n");
 
     const url =
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" +
