@@ -36,7 +36,7 @@ app.post("/api/ai", async (req, res) => {
       });
     }
 
-    const response = await fetch(
+   const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey, {
       https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey},
       {
         method: "POST",
