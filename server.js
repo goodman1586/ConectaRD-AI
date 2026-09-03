@@ -25,7 +25,9 @@ app.post("/api/ai", async (req, res) => {
     const message = String(req.body?.message || "").trim();
 
     if (!message) {
-      return res.status(400).json({ error: "Falta el mensaje." });
+      return res.status(400).json({
+        error: "Falta el mensaje."
+      });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -36,8 +38,8 @@ app.post("/api/ai", async (req, res) => {
       });
     }
 
-   const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey, {
-      https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey},
+    const response = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey,
       {
         method: "POST",
         headers: {
@@ -68,6 +70,7 @@ app.post("/api/ai", async (req, res) => {
 
     if (!response.ok) {
       console.error("Gemini error:", data);
+
       return res.status(500).json({
         error: "Error al conectar con Gemini."
       });
@@ -77,10 +80,13 @@ app.post("/api/ai", async (req, res) => {
       data?.candidates?.[0]?.content?.parts?.[0]?.text ||
       "No pude generar una respuesta.";
 
-    res.json({ reply });
+    res.json({
+      reply: reply
+    });
 
   } catch (error) {
     console.error(error);
+
     res.status(500).json({
       error: "Error al conectar con la IA."
     });
@@ -88,5 +94,5 @@ app.post("/api/ai", async (req, res) => {
 });
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(ConectaRD AI 7.2 running on port ${PORT});
+  console.log(`ConectaRD AI 7.2 running on port ${PORT}`);
 });
