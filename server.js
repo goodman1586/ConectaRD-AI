@@ -10,6 +10,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 app.get("/health", (req, res) => res.json({ ok: true, service: "ConectaRD AI", version: "7.1" }));
 
+app.get("/", (req, res) => res.sendFile(process.cwd() + "/index.html"));
 app.post("/api/ai", async (req, res) => {
   try {
     const message = String(req.body?.message || "").trim();
