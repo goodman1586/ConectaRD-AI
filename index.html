@@ -3,218 +3,230 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ConectaRD AI 5.4 - Delivery</title>
+<title>ConectaRD AI 7.1 — IA + Delivery</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#17202a;padding-bottom:90px}
-header{background:#111827;color:#fff;padding:15px 18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20}
-header b{font-size:18px}.muted{color:#667085}.wrap{max-width:1050px;margin:auto;padding:16px}
-.card{background:#fff;border-radius:16px;padding:17px;margin-bottom:15px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
-h2{margin:0 0 10px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
-.products{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.product{border:1px solid #e1e5ea;border-radius:12px;padding:14px}.product-name{font-size:18px;font-weight:700}
-.price{font-weight:700;margin:7px 0 10px}
-button{border:0;border-radius:10px;padding:12px 14px;font-weight:700;cursor:pointer;font-size:15px}
-button.primary{background:#111827;color:#fff}button.green{background:#d9fbe5;color:#176b3a}
-button.soft{background:#eef2f7;color:#111827}button.orange{background:#fff1db;color:#8a4b00}
-input,textarea,select{width:100%;padding:13px;border:1px solid #d5dae1;border-radius:10px;margin:5px 0 10px;font:inherit}
-textarea{min-height:85px}.hidden{display:none}.line{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #eee}
-.total{display:flex;justify-content:space-between;font-weight:700;font-size:20px;margin-top:10px}
-.qty{display:flex;align-items:center;gap:6px}.qty button{padding:7px 10px}
-.badge{display:inline-flex;align-items:center;justify-content:center;background:#111827;color:#fff;border-radius:999px;min-width:28px;height:28px;padding:0 8px;margin-left:6px}
-.location{border:1px dashed #9ca3af;border-radius:12px;padding:13px;background:#fafafa}
-.order{border:1px solid #e2e6eb;border-radius:12px;padding:13px;margin:9px 0}
-.order-head{display:flex;justify-content:space-between;gap:10px;align-items:center}
-.orderbar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;box-shadow:0 -3px 14px rgba(0,0,0,.12);z-index:30}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#17202a;padding-bottom:85px}
+header{background:#111827;color:#fff;padding:15px 18px;display:flex;justify-content:space-between;align-items:center}
+.wrap{max-width:1050px;margin:auto;padding:16px}.card{background:#fff;border-radius:16px;padding:17px;margin-bottom:15px;box-shadow:0 3px 15px #0000000b}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.products{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.product,.order{border:1px solid #e1e5ea;border-radius:12px;padding:13px;margin:9px 0}.price{font-weight:bold;margin:7px 0 10px}
+button{border:0;border-radius:9px;padding:11px 13px;font-weight:bold;cursor:pointer}.primary{background:#111827;color:#fff}.soft{background:#edf1f5}.green{background:#dcfce7;color:#166534}
+input,textarea,select{width:100%;padding:11px;border:1px solid #d5dae1;border-radius:9px;margin:5px 0 11px;font:inherit}
+.line{display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:9px 0;gap:10px}.total{font-size:20px;font-weight:bold;display:flex;justify-content:space-between;margin-top:12px}
+.location{border:1px dashed #9ca3af;border-radius:12px;padding:13px;background:#fafafa}.muted{color:#667085;font-size:14px}
+.chat{height:240px;overflow:auto;border:1px solid #e2e6eb;border-radius:12px;padding:10px;background:#fafafa;margin-bottom:10px}
+.msg{margin:8px 0;padding:10px 12px;border-radius:12px;max-width:90%}.user{margin-left:auto;background:#111827;color:#fff}.assistant{background:#e9eef5}
+.orderbar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;box-shadow:0 -3px 14px #0002;z-index:30}
 .orderbar-inner{max-width:1050px;margin:auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.orderbar button{background:#111827;color:#fff;min-width:150px}
-#addStatus{min-height:22px;margin-top:8px;font-weight:700}.success{color:#176b3a}.error{color:#b42318}
-.driver-card{border:2px solid #111827;border-radius:14px;padding:14px;margin:10px 0;background:#fbfbfc}
-.driver-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.driver-actions button{flex:1;min-width:140px}
-.status-pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#eef2f7;font-weight:700;font-size:13px}
-@media(max-width:720px){.grid,.products{grid-template-columns:1fr}.orderbar-inner{padding:9px 12px}.orderbar button{min-width:130px}}
+.hidden{display:none}.success{color:#176b3a}.error{color:#b42318}.badge{background:#111827;color:#fff;border-radius:99px;padding:4px 8px}
+@media(max-width:720px){.grid,.products{grid-template-columns:1fr}.orderbar-inner{padding:9px 12px}}
 </style>
 </head>
 <body>
-<header><b>ConectaRD AI</b><span>MVP 5.4 · Delivery</span></header>
+<header><b>ConectaRD AI</b><span>7.1 · IA REAL + Delivery</span></header>
 <div class="wrap">
 
 <div class="card">
-<h2>🚴 Panel del Repartidor</h2>
-<p class="muted">Aquí aparecen los pedidos listos para ser entregados.</p>
-<div id="driverDashboard"></div>
+<h2>👑 Panel del administrador</h2>
+<div class="line"><span>Negocio</span><b>Negocio Demo Anamuya</b></div>
+<div class="line"><span>Estado</span><b id="subStatus">Comprobando...</b></div>
+<div class="line"><span>IA</span><b id="aiStatus">Comprobando...</b></div>
+</div>
+
+<div class="card">
+<h2>🤖 Asistente IA</h2>
+<p class="muted">Ahora la respuesta viene del backend y la clave de IA nunca está en esta página.</p>
+<div id="chat" class="chat"></div>
+<div style="display:flex;gap:8px">
+<input id="aiInput" style="margin:0" placeholder="Ej.: Tengo RD$200, ¿qué me recomiendas?">
+<button id="aiBtn" class="primary">Enviar</button>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">
+<button class="soft quick" data-q="Quiero ver el menú">Ver menú</button>
+<button class="soft quick" data-q="Tengo RD$200, ¿qué me recomiendas?">Recomiéndame algo</button>
+<button class="soft quick" data-q="Quiero hacer un pedido">Hacer pedido</button>
+</div>
 </div>
 
 <div class="card">
 <h2>🏪 Panel del negocio</h2>
-<p class="muted">Los pedidos confirmados aparecen aquí.</p>
-<div id="dashboard"></div>
+<p class="muted">Los pedidos confirmados se guardan en el backend.</p>
+<div id="dashboard"><p class="muted">Cargando...</p></div>
 </div>
 
 <div class="card">
-<h2>🛒 Haz tu pedido</h2>
-<p class="muted">Toca <b>Agregar al carrito</b> para seleccionar productos.</p>
-<div id="addStatus"></div>
-<div class="products" id="products"></div>
+<h2>🚴 Panel del repartidor</h2>
+<div id="driverDashboard"><p class="muted">Cargando...</p></div>
+</div>
+
+<div class="card">
+<h2>🛍️ Haz tu pedido</h2>
+<div id="products" class="products"></div>
 </div>
 
 <div class="grid">
 <div class="card" id="pedidoCard">
-<h2>🛍️ Tu pedido <span id="cartCount" class="badge">0</span></h2>
+<h2>📦 Tu pedido <span id="cartCount" class="badge">0</span></h2>
 <div id="cart"><p class="muted">No has agregado productos.</p></div>
-<div class="total"><span>Total productos</span><span id="subtotal">RD$0</span></div>
+<div class="total"><span>Subtotal</span><span id="subtotal">RD$0</span></div>
 </div>
 
 <div class="card">
 <h2>📍 Datos de entrega</h2>
-<input id="customer" placeholder="Nombre del cliente" autocomplete="name">
-<input id="phone" type="tel" placeholder="WhatsApp" autocomplete="tel">
+<input id="customer" placeholder="Nombre del cliente">
+<input id="phone" placeholder="WhatsApp">
 <select id="delivery">
-<option value="delivery">🚴 Delivery</option>
+<option value="delivery">🚚 Delivery</option>
 <option value="pickup">🏪 Recoger en el negocio</option>
 </select>
 <div id="deliveryBox">
 <div class="location">
 <b>📍 Ubicación de entrega</b>
-<p class="muted">Comparte el GPS o escribe la dirección si el navegador no permite la ubicación.</p>
-<button type="button" id="locationBtn" class="primary">📍 Compartir mi ubicación</button>
+<p class="muted">Usa GPS o escribe una dirección como respaldo.</p>
+<button id="locationBtn" class="primary">📍 Compartir mi ubicación</button>
 <p id="locStatus" class="muted">Ubicación pendiente.</p>
-<label>Dirección / ubicación</label>
-<input id="manualLocation" placeholder="Ej.: Av. España #25, casa azul..." autocomplete="street-address">
-<label>Enlace de Google Maps (opcional)</label>
-<input id="mapLink" type="url" placeholder="Pega aquí el enlace de Google Maps">
-<button type="button" id="mapsBtn" class="soft">🗺️ Abrir Google Maps</button>
+<label>Dirección</label>
+<input id="address" placeholder="Calle, número, sector, referencia">
+<button id="mapsBtn" class="soft">🗺️ Abrir Google Maps</button>
 </div>
-<label>Instrucciones para el delivery</label>
+<label>Instrucciones</label>
 <textarea id="notes" placeholder="Ej.: casa azul, segundo piso..."></textarea>
 </div>
-<button type="button" id="confirmBtn" class="green" style="width:100%;margin-top:5px">Confirmar pedido</button>
+<button id="confirmBtn" class="green" style="width:100%">Confirmar pedido</button>
+<p id="orderStatus" class="muted"></p>
 </div>
 </div>
 
 <div class="card hidden" id="result">
-<h2>✅ Pedido confirmado</h2><div id="receipt"></div>
+<h2>✅ Pedido confirmado</h2>
+<div id="receipt"></div>
 </div>
 </div>
 
 <div class="orderbar"><div class="orderbar-inner">
 <div><b>🛒 Pedido</b> <span id="barItems">0 productos · </span><strong id="barTotal">RD$0</strong></div>
-<button type="button" id="viewOrderBtn">Ver pedido</button>
+<button id="viewOrderBtn" class="primary">Ver pedido</button>
 </div></div>
 
 <script>
 'use strict';
+const API='https://conectard-ai-2.onrender.com';
+const BUSINESS_ID='anamuya-demo';
 const productsData=[['Tostada',50],['Jugo natural',40],['Batida',80],['Queque',10]];
-let cartItems={},coords=null;
+let cart={},coords=null,orders=[];
 const $=id=>document.getElementById(id);
 const money=n=>'RD$'+Number(n||0).toLocaleString('es-DO');
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
-function getOrders(){try{return JSON.parse(localStorage.getItem('conectaRD_orders')||'[]')}catch(e){return[]}}
-let businessOrders=getOrders();
-function saveOrders(){localStorage.setItem('conectaRD_orders',JSON.stringify(businessOrders));}
+
+async function api(path,options={}){
+ const headers={'Content-Type':'application/json','x-business-id':BUSINESS_ID,...(options.headers||{})};
+ const r=await fetch(API+path,{...options,headers});
+ const data=await r.json().catch(()=>({ok:false,message:'Respuesta no válida'}));
+ if(!r.ok) throw new Error(data.message||'Error de conexión');
+ return data;
+}
 
 function renderProducts(){
-$('products').innerHTML=productsData.map((p,i)=>`<div class="product"><div class="product-name">${escapeHtml(p[0])}</div><div class="price">${money(p[1])}</div><button type="button" class="primary add-product" data-index="${i}">Agregar al carrito</button></div>`).join('');
-document.querySelectorAll('.add-product').forEach(b=>b.addEventListener('click',()=>addProduct(Number(b.dataset.index))));
+ $('products').innerHTML=productsData.map((p,i)=>`<div class="product"><b>${p[0]}</b><div class="price">${money(p[1])}</div><button class="soft add" data-i="${i}">Agregar al carrito</button></div>`).join('');
+ document.querySelectorAll('.add').forEach(b=>b.onclick=()=>add(Number(b.dataset.i)));
 }
-function addProduct(i){
-const p=productsData[i];if(!p)return;
-cartItems[p[0]]=(cartItems[p[0]]||0)+1;
-$('addStatus').textContent='✓ '+p[0]+' agregado al carrito.';$('addStatus').className='success';
-renderCart();updateOrderBar();
-}
-function changeQuantity(n,a){if(!cartItems[n])return;cartItems[n]+=a;if(cartItems[n]<=0)delete cartItems[n];renderCart();updateOrderBar();}
+function add(i){const n=productsData[i][0];cart[n]=(cart[n]||0)+1;renderCart();}
 function renderCart(){
-const keys=Object.keys(cartItems);
-if(!keys.length){$('cart').innerHTML='<p class="muted">No has agregado productos.</p>';$('subtotal').textContent=money(0);$('cartCount').textContent='0';return;}
-$('cart').innerHTML=keys.map(n=>{const p=productsData.find(x=>x[0]===n),q=cartItems[n];return `<div class="line"><span><b>${escapeHtml(n)}</b><br><small>${money(p[1])} c/u</small></span><span class="qty"><button type="button" class="soft qty-minus" data-name="${escapeHtml(n)}">−</button><b>${q}</b><button type="button" class="soft qty-plus" data-name="${escapeHtml(n)}">+</button><b>${money(q*p[1])}</b></span></div>`}).join('');
-document.querySelectorAll('.qty-minus').forEach(b=>b.addEventListener('click',()=>changeQuantity(b.dataset.name,-1)));
-document.querySelectorAll('.qty-plus').forEach(b=>b.addEventListener('click',()=>changeQuantity(b.dataset.name,1)));
-const subtotal=keys.reduce((s,n)=>s+cartItems[n]*productsData.find(x=>x[0]===n)[1],0);
-const count=keys.reduce((s,n)=>s+cartItems[n],0);$('subtotal').textContent=money(subtotal);$('cartCount').textContent=count;
+ const ks=Object.keys(cart);
+ $('cart').innerHTML=ks.length?ks.map(k=>{const p=productsData.find(x=>x[0]===k);return `<div class="line"><span>${cart[k]} × ${escapeHtml(k)}</span><b>${money(cart[k]*p[1])}</b></div>`}).join(''):'<p class="muted">No has agregado productos.</p>';
+ const s=ks.reduce((a,k)=>a+cart[k]*productsData.find(x=>x[0]===k)[1],0);
+ $('subtotal').textContent=money(s);
+ const count=ks.reduce((a,k)=>a+cart[k],0);
+ $('cartCount').textContent=count;
+ $('barItems').textContent=count+' producto'+(count===1?'':'s')+' · ';
+ $('barTotal').textContent=money(s);
 }
-function updateOrderBar(){
-const keys=Object.keys(cartItems),count=keys.reduce((s,n)=>s+cartItems[n],0);
-const total=keys.reduce((s,n)=>s+cartItems[n]*productsData.find(x=>x[0]===n)[1],0);
-$('barItems').textContent=count===1?'1 producto · ':count+' productos · ';$('barTotal').textContent=money(total);
-}
-function goToOrder(){$('pedidoCard').scrollIntoView({behavior:'smooth',block:'center'});}
-function deliveryChanged(){
-const d=$('delivery').value==='delivery';$('deliveryBox').classList.toggle('hidden',!d);
-$('locStatus').textContent=d?'Ubicación pendiente.':'No necesaria para recoger en el negocio.';
-if(!d)coords=null;
-}
-async function getLocation(){
-const st=$('locStatus');st.textContent='📍 Solicitando ubicación...';
-if(!window.isSecureContext){st.textContent='Abre la página desde HTTPS (GitHub Pages).';return;}
-if(!navigator.geolocation){st.textContent='Tu navegador no ofrece GPS. Escribe la dirección manualmente.';return;}
-try{if(navigator.permissions?.query){const p=await navigator.permissions.query({name:'geolocation'});if(p.state==='denied'){st.textContent='Ubicación bloqueada. Permite Ubicación para este sitio y recarga.';return;}}}catch(e){}
-const success=pos=>{coords={lat:Number(pos.coords.latitude),lng:Number(pos.coords.longitude),accuracy:Math.round(pos.coords.accuracy||0)};$('manualLocation').value=`Lat: ${coords.lat.toFixed(6)}, Lng: ${coords.lng.toFixed(6)}`;st.textContent=`✓ Ubicación compartida. Precisión aproximada: ${coords.accuracy} m`;};
-const failure=err=>{coords=null;if(err.code===1)st.textContent='Permiso rechazado. Permite la ubicación para este sitio.';else if(err.code===2)st.textContent='No se encontró el GPS. Activa la ubicación o escribe la dirección.';else if(err.code===3)st.textContent='El GPS tardó demasiado. Intenta otra vez o escribe la dirección.';else st.textContent='No se pudo obtener la ubicación.';};
-navigator.geolocation.getCurrentPosition(success,()=>navigator.geolocation.getCurrentPosition(success,failure,{enableHighAccuracy:false,timeout:30000,maximumAge:60000}),{enableHighAccuracy:true,timeout:15000,maximumAge:0});
-}
-function openMaps(){
-if(coords){window.open(`https://www.google.com/maps?q=${coords.lat},${coords.lng}`,'_blank');return;}
-const link=$('mapLink').value.trim();if(link){window.open(link,'_blank');return;}
-window.open('https://www.google.com/maps/','_blank');
-}
-function confirmOrder(){
-const keys=Object.keys(cartItems),name=$('customer').value.trim(),phone=$('phone').value.trim(),delivery=$('delivery').value,notes=$('notes').value.trim(),manual=$('manualLocation').value.trim(),mapLink=$('mapLink').value.trim();
-if(!keys.length){alert('Primero agrega al menos un producto al carrito.');goToOrder();return;}
-if(!name||!phone){alert('Completa nombre y WhatsApp.');return;}
-if(delivery==='delivery'&&!coords&&!manual&&!mapLink){alert('Comparte tu ubicación o escribe la dirección de entrega.');return;}
-const items=keys.map(k=>`${cartItems[k]} × ${k}`).join(', ');
-const subtotal=keys.reduce((s,k)=>s+cartItems[k]*productsData.find(x=>x[0]===k)[1],0),fee=delivery==='delivery'?50:0,total=subtotal+fee;
-const location=coords?`Lat: ${coords.lat.toFixed(6)}, Lng: ${coords.lng.toFixed(6)}`:(manual||mapLink||'Recoger en el negocio');
-const order={id:businessOrders.length?Math.max(...businessOrders.map(o=>Number(o.id)||0))+1:1,customer:name,phone,items,total,location,mapLink,notes,status:'Nuevo',createdAt:new Date().toLocaleString('es-DO')};
-businessOrders.unshift(order);saveOrders();
-$('result').classList.remove('hidden');
-$('receipt').innerHTML=`<div class="line"><span>Cliente</span><b>${escapeHtml(name)}</b></div><div class="line"><span>WhatsApp</span><b>${escapeHtml(phone)}</b></div><div class="line"><span>Productos</span><b>${escapeHtml(items)}</b></div><div class="line"><span>Delivery</span><b>${delivery==='delivery'?'Delivery':'Recoger'}</b></div><div class="line"><span>Ubicación</span><b>${escapeHtml(location)}</b></div><div class="line"><span>Instrucciones</span><b>${escapeHtml(notes||'—')}</b></div><div class="line"><span>Costo delivery</span><b>${money(fee)}</b></div><div class="total"><span>Total</span><span>${money(total)}</span></div><p class="muted">Pedido #${order.id} · ${escapeHtml(order.createdAt)}</p>`;
-cartItems={};coords=null;$('manualLocation').value='';$('mapLink').value='';renderCart();updateOrderBar();renderDashboard();renderDriverDashboard();$('result').scrollIntoView({behavior:'smooth'});
-}
-function mapsForOrder(o){
-if(o.mapLink&&/^https?:\/\//i.test(o.mapLink))return o.mapLink;
-const m=String(o.location||'').match(/Lat:\s*([-\d.]+),\s*Lng:\s*([-\d.]+)/);
-if(m)return `https://www.google.com/maps/dir/?api=1&destination=${m[1]},${m[2]}`;
-if(o.location)return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(o.location)}`;
-return 'https://www.google.com/maps/';
-}
-function renderDriverDashboard(){
-const box=$('driverDashboard');
-const active=businessOrders.filter(o=>o.status==='En camino'||o.status==='Preparando');
-if(!active.length){box.innerHTML='<p class="muted">No hay pedidos para entregar ahora.</p>';return;}
-box.innerHTML=active.map(o=>`<div class="driver-card">
-<div class="order-head"><b>Pedido #${o.id} · ${escapeHtml(o.customer)}</b><span class="status-pill">${escapeHtml(o.status)}</span></div>
-<p><b>📞 WhatsApp:</b> ${escapeHtml(o.phone)}</p>
-<p><b>🛒 Pedido:</b> ${escapeHtml(o.items)}</p>
-<p><b>💰 Total:</b> ${money(o.total)}</p>
-<p><b>📍 Entrega:</b> ${escapeHtml(o.location)}</p>
-<p><b>📝 Instrucciones:</b> ${escapeHtml(o.notes||'Sin instrucciones')}</p>
-<div class="driver-actions">
-<button type="button" class="primary navigate-order" data-id="${o.id}">🗺️ Navegar</button>
-<button type="button" class="soft whatsapp-order" data-id="${o.id}">💬 WhatsApp</button>
-<button type="button" class="green delivered-order" data-id="${o.id}">✅ Marcar entregado</button>
-</div></div>`).join('');
-document.querySelectorAll('.navigate-order').forEach(b=>b.addEventListener('click',()=>{const o=businessOrders.find(x=>Number(x.id)===Number(b.dataset.id));if(o)window.open(mapsForOrder(o),'_blank');}));
-document.querySelectorAll('.whatsapp-order').forEach(b=>b.addEventListener('click',()=>{const o=businessOrders.find(x=>Number(x.id)===Number(b.dataset.id));if(o){const digits=String(o.phone).replace(/\D/g,'');window.open(`https://wa.me/${digits}?text=${encodeURIComponent('Hola '+o.customer+', soy el repartidor de ConectaRD AI. Voy con tu pedido #'+o.id+'.')}`,'_blank');}}));
-document.querySelectorAll('.delivered-order').forEach(b=>b.addEventListener('click',()=>{changeStatus(Number(b.dataset.id),'Entregado');}));
-}
-function renderDashboard(){
-const box=$('dashboard');
-if(!businessOrders.length){box.innerHTML='<p class="muted">Todavía no hay pedidos.</p>';renderDriverDashboard();return;}
-box.innerHTML=businessOrders.map(o=>`<div class="order"><div class="order-head"><b>Pedido #${o.id} · ${escapeHtml(o.customer)}</b><select class="status-select" data-id="${o.id}">${['Nuevo','Preparando','En camino','Entregado'].map(s=>`<option value="${s}" ${s===o.status?'selected':''}>${s}</option>`).join('')}</select></div><p class="muted">📞 ${escapeHtml(o.phone)}<br>🛒 ${escapeHtml(o.items)}<br>📍 ${escapeHtml(o.location)}<br>📝 ${escapeHtml(o.notes||'Sin instrucciones')}<br>🕒 ${escapeHtml(o.createdAt)}</p><b>${money(o.total)}</b>${(o.mapLink||String(o.location).startsWith('Lat:'))?`<br><button type="button" class="soft map-order" data-id="${o.id}">🗺️ Abrir ubicación</button>`:''}</div>`).join('');
-document.querySelectorAll('.status-select').forEach(s=>s.addEventListener('change',()=>changeStatus(Number(s.dataset.id),s.value)));
-document.querySelectorAll('.map-order').forEach(b=>b.addEventListener('click',()=>{const o=businessOrders.find(x=>Number(x.id)===Number(b.dataset.id));if(o)window.open(mapsForOrder(o),'_blank');}));
-renderDriverDashboard();
-}
-function changeStatus(id,status){const o=businessOrders.find(x=>Number(x.id)===Number(id));if(!o)return;o.status=status;saveOrders();renderDashboard();}
+function deliveryChanged(){ $('deliveryBox').classList.toggle('hidden',$('delivery').value!=='delivery'); }
+$('delivery').onchange=deliveryChanged;
 
-$('delivery').addEventListener('change',deliveryChanged);
-$('locationBtn').addEventListener('click',getLocation);
-$('mapsBtn').addEventListener('click',openMaps);
-$('confirmBtn').addEventListener('click',confirmOrder);
-$('viewOrderBtn').addEventListener('click',goToOrder);
-renderProducts();renderCart();updateOrderBar();renderDashboard();deliveryChanged();
+$('locationBtn').onclick=()=>{
+ $('locStatus').textContent='📍 Solicitando ubicación...';
+ if(!window.isSecureContext){$('locStatus').textContent='Abre la página desde HTTPS.';return;}
+ if(!navigator.geolocation){$('locStatus').textContent='GPS no disponible. Escribe la dirección.';return;}
+ navigator.geolocation.getCurrentPosition(
+  pos=>{coords={lat:pos.coords.latitude,lng:pos.coords.longitude,accuracy:Math.round(pos.coords.accuracy||0)};$('locStatus').textContent='✅ Ubicación compartida. Precisión aproximada: '+coords.accuracy+' m';},
+  err=>{$('locStatus').textContent=err.code===1?'Permiso rechazado. Permite la ubicación.':'No se pudo obtener GPS. Puedes usar la dirección.';},
+  {enableHighAccuracy:true,timeout:15000,maximumAge:0}
+ );
+};
+$('mapsBtn').onclick=()=>{
+ const q=coords?`${coords.lat},${coords.lng}`:$('address').value.trim();
+ window.open(q?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q):'https://www.google.com/maps/','_blank');
+};
+
+function addChat(role,text){
+ const d=document.createElement('div');d.className='msg '+role;d.innerHTML=role==='user'?escapeHtml(text):escapeHtml(text);$('chat').appendChild(d);$('chat').scrollTop=$('chat').scrollHeight;
+}
+async function askAI(){
+ const input=$('aiInput'),q=input.value.trim();if(!q)return;
+ addChat('user',q);input.value='';$('aiBtn').disabled=true;$('aiBtn').textContent='...';
+ try{const d=await api('/api/ai',{method:'POST',body:JSON.stringify({message:q})});addChat('assistant',d.reply);}
+ catch(e){addChat('assistant','⚠️ '+e.message);}
+ finally{$('aiBtn').disabled=false;$('aiBtn').textContent='Enviar';}
+}
+$('aiBtn').onclick=askAI;
+$('aiInput').onkeydown=e=>{if(e.key==='Enter')askAI()};
+document.querySelectorAll('.quick').forEach(b=>b.onclick=()=>{$('aiInput').value=b.dataset.q;askAI()});
+
+async function confirmOrder(){
+ const ks=Object.keys(cart),name=$('customer').value.trim(),phone=$('phone').value.trim(),delivery=$('delivery').value;
+ if(!ks.length)return alert('Agrega al menos un producto.');
+ if(!name||!phone)return alert('Completa nombre y WhatsApp.');
+ if(delivery==='delivery'&&!coords&&!$('address').value.trim())return alert('Comparte GPS o escribe una dirección.');
+ const items=ks.map(k=>({name:k,quantity:cart[k],unitPrice:productsData.find(x=>x[0]===k)[1]}));
+ const subtotal=items.reduce((s,x)=>s+x.quantity*x.unitPrice,0);
+ const fee=delivery==='delivery'?50:0,total=subtotal+fee;
+ const location=coords?{lat:coords.lat,lng:coords.lng,accuracy:coords.accuracy}:null;
+ $('confirmBtn').disabled=true;$('orderStatus').textContent='Enviando pedido...';
+ try{
+  const d=await api('/api/orders',{method:'POST',body:JSON.stringify({customer:name,phone,deliveryType:delivery,address:$('address').value.trim(),location,items,notes:$('notes').value.trim(),total})});
+  const o=d.order;
+  $('receipt').innerHTML=`<div class="line"><span>Pedido</span><b>#${escapeHtml(o.id.slice(0,8))}</b></div><div class="line"><span>Cliente</span><b>${escapeHtml(name)}</b></div><div class="line"><span>Productos</span><b>${escapeHtml(items.map(x=>x.quantity+' × '+x.name).join(', '))}</b></div><div class="line"><span>Delivery</span><b>${delivery==='delivery'?money(fee):'Recogida'}</b></div><div class="line"><span>Total</span><b>${money(total)}</b></div>`;
+  $('result').classList.remove('hidden');cart={};renderCart();$('orderStatus').textContent='✅ Pedido enviado al negocio.';coords=null;loadOrders();$('result').scrollIntoView({behavior:'smooth'});
+ }catch(e){$('orderStatus').textContent='❌ '+e.message;}
+ finally{$('confirmBtn').disabled=false;}
+}
+$('confirmBtn').onclick=confirmOrder;
+$('viewOrderBtn').onclick=()=>$('pedidoCard').scrollIntoView({behavior:'smooth'});
+
+function mapsFor(o){
+ if(o.location?.lat)return `https://www.google.com/maps/dir/?api=1&destination=${o.location.lat},${o.location.lng}`;
+ return o.address?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.address)}`:'https://www.google.com/maps/';
+}
+function statusLabel(s){return ({new:'Nuevo',preparing:'Preparando',on_the_way:'En camino',delivered:'Entregado',cancelled:'Cancelado'})[s]||s}
+async function setStatus(id,status){
+ try{await api('/api/orders/'+id+'/status',{method:'PATCH',body:JSON.stringify({status})});loadOrders();}catch(e){alert(e.message)}
+}
+function renderDash(){
+ if(!orders.length){$('dashboard').innerHTML='<p class="muted">Todavía no hay pedidos.</p>';return;}
+ $('dashboard').innerHTML=orders.map(o=>`<div class="order"><div class="line"><b>Pedido #${escapeHtml(o.id.slice(0,8))} · ${escapeHtml(o.customer)}</b><select data-id="${o.id}" class="status">${['new','preparing','on_the_way','delivered','cancelled'].map(s=>`<option value="${s}" ${s===o.status?'selected':''}>${statusLabel(s)}</option>`).join('')}</select></div><p class="muted">📱 ${escapeHtml(o.phone)}<br>📦 ${escapeHtml(o.items.map(x=>x.quantity+' × '+x.name).join(', '))}<br>📍 ${o.location?escapeHtml(o.location.lat+', '+o.location.lng):escapeHtml(o.address||'Sin ubicación')}</p><b>${money(o.total)}</b></div>`).join('');
+ document.querySelectorAll('.status').forEach(s=>s.onchange=()=>setStatus(s.dataset.id,s.value));
+}
+function renderDriver(){
+ const active=orders.filter(o=>o.status==='preparing'||o.status==='on_the_way');
+ if(!active.length){$('driverDashboard').innerHTML='<p class="muted">No hay pedidos para entregar ahora.</p>';return;}
+ $('driverDashboard').innerHTML=active.map(o=>`<div class="order"><b>Pedido #${escapeHtml(o.id.slice(0,8))} · ${escapeHtml(o.customer)}</b><p>📍 ${escapeHtml(o.address|| (o.location?o.location.lat+', '+o.location.lng:'Sin ubicación'))}</p><p>💰 ${money(o.total)}</p><button class="primary nav" data-id="${o.id}">🗺️ Navegar</button> <button class="green done" data-id="${o.id}">✅ Entregado</button></div>`).join('');
+ document.querySelectorAll('.nav').forEach(b=>{const o=orders.find(x=>x.id===b.dataset.id);b.onclick=()=>window.open(mapsFor(o),'_blank')});
+ document.querySelectorAll('.done').forEach(b=>b.onclick=()=>setStatus(b.dataset.id,'delivered'));
+}
+async function loadOrders(){
+ try{const d=await api('/api/orders');orders=d.orders;renderDash();renderDriver();}catch(e){$('dashboard').innerHTML='<p class="error">'+escapeHtml(e.message)+'</p>';}
+}
+async function boot(){
+ renderProducts();renderCart();addChat('assistant','¡Hola! 👋 Soy la IA de ConectaRD. Puedo ayudarte con el menú, precios y recomendaciones.');
+ try{
+  const h=await fetch(API+'/health').then(r=>r.json());
+  $('aiStatus').textContent=h.aiConfigured?'✅ IA conectada':'⚠️ Falta configurar IA';
+  $('subStatus').textContent='✅ Activo';
+ }catch(e){$('aiStatus').textContent='❌ Backend sin conexión';}
+ loadOrders();
+}
+boot();
 </script>
 </body>
 </html>

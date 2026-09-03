@@ -1,48 +1,19 @@
-# ConectaRD AI 7.0 Backend
+# ConectaRD AI 7.1 — IA real + Delivery
 
-Backend MVP para ConectaRD AI.
-
-## Funciones
-
-- Health check
-- Catálogo de productos
-- Creación de pedidos
-- Consulta de pedidos
-- Cambio de estado de pedidos
-- Delivery
-- Ubicación del cliente
-- Control de suscripción
-- Suspensión del negocio
-- Reactivación del negocio
-- Panel administrativo
+Esta versión conecta el asistente de la aplicación con el backend.
 
 ## Render
+- Build Command: `npm install`
+- Start Command: `npm start`
 
-Build Command:
+## Variables de entorno en Render
+Solo hay que agregar:
+- `OPENAI_API_KEY` = tu clave de OpenAI
+- `OPENAI_MODEL` = `gpt-5` (opcional; si no se agrega, usa gpt-5)
 
-npm install
+La clave NO va dentro de `index.html`.
 
-Start Command:
+## Flujo
+Cliente → IA real → catálogo → carrito → GPS/dirección → pedido → panel del negocio → repartidor.
 
-npm start
-
-## Puerto
-
-El servidor utiliza:
-
-process.env.PORT
-
-## Importante
-
-Esta versión utiliza memoria temporal para los datos.
-
-Antes de utilizar el sistema comercialmente debemos conectar:
-
-- PostgreSQL
-- Autenticación segura
-- Sistema de pagos
-- Webhooks
-- IA mediante variables de entorno
-- Seguridad del administrador
-- Sistema real de negocios
-- Sistema real de repartidores
+El backend sigue usando memoria temporal para los pedidos; PostgreSQL, autenticación, pagos y webhooks quedan para la etapa de producción.
