@@ -90,4 +90,3 @@ app.post("/api/ai", async (req, res) => {
 app.listen(PORT, "0.0.0.0", () => {
   console.log(ConectaRD AI 7.2 running on port ${PORT});
 });
-      https://generativelanguage.googleapis.com/v1beta/models/gemini-3-
