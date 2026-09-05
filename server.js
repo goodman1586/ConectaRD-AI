@@ -1,12 +1,3 @@
-
-Claro, bro. Vamos a hacerlo completo y limpio, para que no tengas que buscar partes del código.
-
-Además, revisé la documentación actual de OpenAI: los modelos actuales funcionan mediante la Responses API, así que mantendremos client.responses.create(). 
-
-server.js completo
-
-Borra TODO lo que tienes en server.js y pega exactamente esto:
-
 import express from "express";
 import cors from "cors";
 import crypto from "crypto";
@@ -375,4 +366,94 @@ app.patch(
     }
 
     order.status = newStatus;
+
+    order.updatedAt =
+      new Date().toISOString();
+
+    orders.set(order.id, order);
+
+    res.json({
+      ok: true,
+      order
+    });
+  }
+);
+
+/* =========================
+   ADMINISTRACIÓN
+========================= */
+
+app.get("/api/admin/businesses", (_req, res) => {
+  res.json({
+    ok: true,
+
+    businesses:
+      [...businesses.values()].map(
+        (business) => ({
+          ...business,
+          active:
+            businessIsActive(business)
+        })
+      )
+  });
+});
+
+/* =========================
+   SUSCRIPCIÓN
+========================= */
+
+app.post(
+  "/api/admin/businesses/:id/subscription",
+  (req, res) => {
+
+    const business =
+      businesses.get(req.params.id);
+
+    if (!business) {
+      return res.status(404).json({
+        ok: false,
+        message: "Negocio no encontrado."
+      });
+    }
+
+    if (
+      typeof req.body?.active ===
+      "boolean"
+    ) {
+      business.active =
+        req.body.active;
+    }
+
+    if (
+      req.body?.subscriptionExpiresAt
+    ) {
+      business.subscriptionExpiresAt =
+        req.body.subscriptionExpiresAt;
+    }
+
+    businesses.set(
+      business.id,
+      business
+    );
+
+    res.json({
+      ok: true,
+      business
+    });
+  }
+);
+
+/* =========================
+   SERVIDOR
+========================= */
+
+app.listen(
+  PORT,
+  "0.0.0.0",
+  () => {
+    console.log(
+      `ConectaRD AI running on port ${PORT}`
+    );
+  }
+);
 
