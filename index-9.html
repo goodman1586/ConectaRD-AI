@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ConectaRD AI 7.1 — IA + Delivery</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#17202a;padding-bottom:85px}
+header{background:#111827;color:#fff;padding:15px 18px;display:flex;justify-content:space-between;align-items:center}
+.wrap{max-width:1050px;margin:auto;padding:16px}.card{background:#fff;border-radius:16px;padding:17px;margin-bottom:15px;box-shadow:0 3px 15px #0000000b}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.products{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.product,.order{border:1px solid #e1e5ea;border-radius:12px;padding:13px;margin:9px 0}.price{font-weight:bold;margin:7px 0 10px}
+button{border:0;border-radius:9px;padding:11px 13px;font-weight:bold;cursor:pointer}button:disabled{opacity:.6;cursor:not-allowed}
+.primary{background:#111827;color:#fff}.soft{background:#edf1f5}.green{background:#dcfce7;color:#166534}
+input,textarea,select{width:100%;padding:11px;border:1px solid #d5dae1;border-radius:9px;margin:5px 0 11px;font:inherit}
+.line{display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:9px 0;gap:10px}.total{font-size:20px;font-weight:bold;display:flex;justify-content:space-between;margin-top:12px}
+.location{border:1px dashed #9ca3af;border-radius:12px;padding:13px;background:#fafafa}.muted{color:#667085;font-size:14px}
+.chat{height:240px;overflow:auto;border:1px solid #e2e6eb;border-radius:12px;padding:10px;background:#fafafa;margin-bottom:10px}
+.msg{margin:8px 0;padding:10px 12px;border-radius:12px;max-width:90%}.user{margin-left:auto;background:#111827;color:#fff}.assistant{background:#e9eef5}
+.orderbar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;box-shadow:0 -3px 14px #0002;z-index:30}
+.orderbar-inner{max-width:1050px;margin:auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hidden{display:none}.success{color:#176b3a}.error{color:#b42318}.badge{background:#111827;color:#fff;border-radius:99px;padding:4px 8px}
+@media(max-width:720px){.grid,.products{grid-template-columns:1fr}.orderbar-inner{padding:9px 12px}}
+</style>
+</head>
+<body>
+<header><b>ConectaRD AI</b><span>7.1 · IA REAL + Delivery</span></header>
+<div class="wrap">
+
+<div class="card">
+<h2>🧑‍💼 Panel del administrador</h2>
+<div class="line"><span>Negocio</span><b>Negocio Demo Anamuya</b></div>
+<div class="line"><span>Estado</span><b id="subStatus">Comprobando...</b></div>
+<div class="line"><span>IA</span><b id="aiStatus">Comprobando...</b></div>
+</div>
+
+<div class="card">
+<h2>🤖 Asistente IA</h2>
+<p class="muted">La respuesta viene del backend. La clave de OpenAI nunca está en esta página.</p>
+<div id="chat" class="chat"></div>
+<div style="display:flex;gap:8px">
+<input id="aiInput" style="margin:0" placeholder="Ej.: Tengo RD$200, ¿qué me recomiendas?">
+<button type="button" id="aiBtn" class="primary">Enviar</button>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">
+<button type="button" class="soft quick" data-q="Quiero ver el menú">Ver menú</button>
+<button type="button" class="soft quick" data-q="Tengo RD$200, ¿qué me recomiendas?">Recomiéndame algo</button>
+<button type="button" class="soft quick" data-q="Quiero hacer un pedido">Hacer pedido</button>
+</div>
+</div>
+
+<div class="card">
+<h2>📦 Panel del negocio</h2>
+<p class="muted">Los pedidos confirmados se guardan en el backend.</p>
+<div id="dashboard"><p class="muted">Cargando...</p></div>
+</div>
+
+<div class="card">
+<h2>🚴 Panel del repartidor</h2>
+<div id="driverDashboard"><p class="muted">Cargando...</p></div>
+</div>
+
+<div class="card">
+<h2>🛒 Haz tu pedido</h2>
+<div id="products" class="products"></div>
+</div>
+
+<div class="grid">
+<div class="card" id="pedidoCard">
+<h2>🧾 Tu pedido <span id="cartCount" class="badge">0</span></h2>
+<div id="cart"><p class="muted">No has agregado productos.</p></div>
+<div class="total"><span>Subtotal</span><span id="subtotal">RD$0</span></div>
+</div>
+
+<div class="card">
+<h2>📍 Datos de entrega</h2>
+<input id="customer" placeholder="Nombre del cliente">
+<input id="phone" placeholder="WhatsApp">
+<select id="delivery">
+<option value="delivery">🚚 Delivery</option>
+<option value="pickup">🏪 Recoger en el negocio</option>
+</select>
+<div id="deliveryBox">
+<div class="location">
+<b>📍 Ubicación de entrega</b>
+<p class="muted">Usa GPS o escribe una dirección como respaldo.</p>
+<button type="button" id="locationBtn" class="primary">Compartir mi ubicación</button>
+<p id="locStatus" class="muted">Ubicación pendiente.</p>
+<label>Dirección</label>
+<input id="address" placeholder="Calle, número, sector, referencia">
+<button type="button" id="mapsBtn" class="soft">Abrir Google Maps</button>
+</div>
+<label>Instrucciones</label>
+<textarea id="notes" placeholder="Ej.: casa azul, segundo piso..."></textarea>
+</div>
+<button type="button" id="confirmBtn" class="green" style="width:100%">Confirmar pedido</button>
+<p id="orderStatus" class="muted"></p>
+</div>
+</div>
+
+<div class="card hidden" id="result">
+<h2>✅ Pedido confirmado</h2>
+<div id="receipt"></div>
+</div>
+</div>
+
+<div class="orderbar"><div class="orderbar-inner">
+<div><b>🛒 Pedido</b> <span id="barItems">0 productos · </span><strong id="barTotal">RD$0</strong></div>
+<button type="button" id="viewOrderBtn" class="primary">Ver pedido</button>
+</div></div>
+
+<script>
+'use strict';
+const API='https://conectard-ai-2.onrender.com';
+const BUSINESS_ID='anamuya-demo';
+const productsData=[['Tostada',50],['Jugo natural',40],['Batida',80],['Queque',10]];
+let cart={},coords=null,orders=[];
+const $=id=>document.getElementById(id);
+const money=n=>'RD$'+Number(n||0).toLocaleString('es-DO');
+
+function escapeHtml(v){
+return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+
+async function api(path,options={}){
+const headers={'Content-Type':'application/json','x-business-id':BUSINESS_ID,...(options.headers||{})};
+const r=await fetch(API+path,{...options,headers});
+const data=await r.json().catch(()=>({ok:false,message:'Respuesta no válida'}));
+if(!r.ok)throw new Error(data.message||data.error||'Error de conexión');
+return data;
+}
+
+function renderProducts(){
+$('products').innerHTML=productsData.map((p,i)=>`
+<div class="product"><b>${escapeHtml(p[0])}</b><div class="price">${money(p[1])}</div>
+<button type="button" class="soft add" data-i="${i}">Agregar al carrito</button></div>`).join('');
+document.querySelectorAll('.add').forEach(b=>b.onclick=()=>add(Number(b.dataset.i)));
+}
+
+function add(i){
+const name=productsData[i][0];cart[name]=(cart[name]||0)+1;renderCart();
+}
+
+function renderCart(){
+const ks=Object.keys(cart);
+$('cart').innerHTML=ks.length?ks.map(k=>{
+const p=productsData.find(x=>x[0]===k);
+return `<div class="line"><span>${cart[k]} × ${escapeHtml(k)}</span><b>${money(cart[k]*p[1])}</b></div>`;
+}).join(''):'<p class="muted">No has agregado productos.</p>';
+const subtotal=ks.reduce((s,k)=>s+cart[k]*productsData.find(x=>x[0]===k)[1],0);
+const count=ks.reduce((s,k)=>s+cart[k],0);
+$('subtotal').textContent=money(subtotal);
+$('cartCount').textContent=count;
+$('barItems').textContent=count+' producto'+(count===1?'':'s')+' · ';
+$('barTotal').textContent=money(subtotal);
+}
+
+function deliveryChanged(){
+$('deliveryBox').classList.toggle('hidden',$('delivery').value!=='delivery');
+}
+$('delivery').onchange=deliveryChanged;
+
+$('locationBtn').onclick=()=>{
+$('locStatus').textContent='📍 Solicitando ubicación...';
+if(!window.isSecureContext){$('locStatus').textContent='Abre la página desde HTTPS.';return;}
+if(!navigator.geolocation){$('locStatus').textContent='GPS no disponible. Escribe la dirección.';return;}
+navigator.geolocation.getCurrentPosition(
+pos=>{
+coords={lat:pos.coords.latitude,lng:pos.coords.longitude,accuracy:Math.round(pos.coords.accuracy||0)};
+$('locStatus').textContent='✅ Ubicación compartida. Precisión aproximada: '+coords.accuracy+' m';
+},
+err=>{
+$('locStatus').textContent=err.code===1?'Permiso rechazado. Permite la ubicación.':'No se pudo obtener GPS. Puedes usar la dirección.';
+},
+{enableHighAccuracy:true,timeout:15000,maximumAge:0}
+);
+};
+
+$('mapsBtn').onclick=()=>{
+const q=coords?`${coords.lat},${coords.lng}`:$('address').value.trim();
+const url=q?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q):'https://www.google.com/maps/';
+window.open(url,'_blank');
+};
+
+function addChat(role,text){
+const d=document.createElement('div');
+d.className='msg '+role;
+d.textContent=String(text??'');
+$('chat').appendChild(d);
+$('chat').scrollTop=$('chat').scrollHeight;
+}
+
+async function askAI(){
+const input=$('aiInput'),q=input.value.trim();
+if(!q)return;
+addChat('user',q);
+input.value='';
+$('aiBtn').disabled=true;
+$('aiBtn').textContent='...';
+try{
+const d=await api('/api/ai',{method:'POST',body:JSON.stringify({message:q})});
+addChat('assistant',d.reply||'No pude generar una respuesta.');
+}catch(e){addChat('assistant','⚠️ '+e.message);}
+finally{$('aiBtn').disabled=false;$('aiBtn').textContent='Enviar';}
+}
+$('aiBtn').onclick=askAI;
+$('aiInput').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();askAI();}};
+document.querySelectorAll('.quick').forEach(b=>b.onclick=()=>{$('aiInput').value=b.dataset.q;askAI();});
+
+async function confirmOrder(){
+const ks=Object.keys(cart),name=$('customer').value.trim(),phone=$('phone').value.trim(),delivery=$('delivery').value;
+if(!ks.length){alert('Agrega al menos un producto.');return;}
+if(!name||!phone){alert('Completa nombre y WhatsApp.');return;}
+if(delivery==='delivery'&&!coords&&!$('address').value.trim()){alert('Comparte GPS o escribe una dirección.');return;}
+
+const items=ks.map(k=>({name:k,quantity:cart[k],unitPrice:productsData.find(x=>x[0]===k)[1]}));
+const subtotal=items.reduce((s,x)=>s+x.quantity*x.unitPrice,0);
+const fee=delivery==='delivery'?50:0;
+const total=subtotal+fee;
+const location=coords?{lat:coords.lat,lng:coords.lng,accuracy:coords.accuracy}:null;
+
+$('confirmBtn').disabled=true;
+$('orderStatus').textContent='Enviando pedido...';
+
+try{
+const d=await api('/api/orders',{method:'POST',body:JSON.stringify({
+customer:name,phone,deliveryType:delivery,address:$('address').value.trim(),location,items,
+notes:$('notes').value.trim(),total
+})});
+const o=d.order;
+$('receipt').innerHTML=`
+<div class="line"><span>Pedido</span><b>#${escapeHtml(o.id.slice(0,8))}</b></div>
+<div class="line"><span>Cliente</span><b>${escapeHtml(name)}</b></div>
+<div class="line"><span>Productos</span><b>${escapeHtml(items.map(x=>x.quantity+' × '+x.name).join(', '))}</b></div>
+<div class="line"><span>Delivery</span><b>${delivery==='delivery'?money(fee):'Recogida'}</b></div>
+<div class="line"><span>Total</span><b>${money(total)}</b></div>`;
+$('result').classList.remove('hidden');
+cart={};coords=null;renderCart();
+$('orderStatus').textContent='✅ Pedido enviado al negocio.';
+await loadOrders();
+$('result').scrollIntoView({behavior:'smooth'});
+}catch(e){$('orderStatus').textContent='⚠️ '+e.message;}
+finally{$('confirmBtn').disabled=false;}
+}
+$('confirmBtn').onclick=confirmOrder;
+
+$('viewOrderBtn').onclick=()=>$('pedidoCard').scrollIntoView({behavior:'smooth'});
+
+function mapsFor(o){
+if(o.location?.lat)return 'https://www.google.com/maps/dir/?api=1&destination='+o.location.lat+','+o.location.lng;
+if(o.address)return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(o.address);
+return 'https://www.google.com/maps/';
+}
+
+function statusLabel(s){
+return({new:'Nuevo',preparing:'Preparando',on_the_way:'En camino',delivered:'Entregado',cancelled:'Cancelado'})[s]||s;
+}
+
+async function setStatus(id,status){
+try{
+await api('/api/orders/'+id+'/status',{method:'PATCH',body:JSON.stringify({status})});
+await loadOrders();
+}catch(e){alert(e.message);}
+}
+
+function renderDash(){
+if(!orders.length){$('dashboard').innerHTML='<p class="muted">Todavía no hay pedidos.</p>';return;}
+$('dashboard').innerHTML=orders.map(o=>`
+<div class="order">
+<div class="line"><b>Pedido #${escapeHtml(o.id.slice(0,8))} · ${escapeHtml(o.customer)}</b>
+<select data-id="${escapeHtml(o.id)}" class="status">
+${['new','preparing','on_the_way','delivered','cancelled'].map(s=>`<option value="${s}" ${s===o.status?'selected':''}>${statusLabel(s)}</option>`).join('')}
+</select></div>
+<p class="muted">${escapeHtml(o.phone||'')}<br>
+${escapeHtml((o.items||[]).map(x=>x.quantity+' × '+x.name).join(', '))}<br>
+${o.location?escapeHtml(o.location.lat+', '+o.location.lng):escapeHtml(o.address||'Sin ubicación')}</p>
+<b>${money(o.total)}</b>
+</div>`).join('');
+document.querySelectorAll('.status').forEach(s=>s.onchange=()=>setStatus(s.dataset.id,s.value));
+}
+
+function renderDriver(){
+const active=orders.filter(o=>o.status==='preparing'||o.status==='on_the_way');
+if(!active.length){$('driverDashboard').innerHTML='<p class="muted">No hay pedidos para entregar ahora.</p>';return;}
+$('driverDashboard').innerHTML=active.map(o=>`
+<div class="order"><b>Pedido #${escapeHtml(o.id.slice(0,8))} · ${escapeHtml(o.customer)}</b>
+<p>${escapeHtml(o.address||(o.location?o.location.lat+', '+o.location.lng:'Sin ubicación'))}</p>
+<p>${money(o.total)}</p>
+<button type="button" class="primary nav" data-id="${escapeHtml(o.id)}">🗺️ Navegar</button>
+<button type="button" class="green done" data-id="${escapeHtml(o.id)}">✅ Entregado</button>
+</div>`).join('');
+document.querySelectorAll('.nav').forEach(b=>{b.onclick=()=>{const o=orders.find(x=>x.id===b.dataset.id);if(o)window.open(mapsFor(o),'_blank');};});
+document.querySelectorAll('.done').forEach(b=>b.onclick=()=>setStatus(b.dataset.id,'delivered'));
+}
+
+async function loadOrders(){
+try{
+const d=await api('/api/orders');
+orders=Array.isArray(d.orders)?d.orders:[];
+renderDash();renderDriver();
+}catch(e){
+$('dashboard').innerHTML='<p class="error">'+escapeHtml(e.message)+'</p>';
+$('driverDashboard').innerHTML='<p class="error">'+escapeHtml(e.message)+'</p>';
+}
+}
+
+async function boot(){
+renderProducts();
+renderCart();
+addChat('assistant','¡Hola! Soy la IA de ConectaRD. Puedo ayudarte con el menú, precios y recomendaciones.');
+try{
+const h=await fetch(API+'/health').then(r=>r.json());
+$('aiStatus').textContent=h.aiConfigured?'✅ IA conectada':'⚠️ Falta configurar IA';
+$('subStatus').textContent='✅ Activo';
+}catch(e){
+$('aiStatus').textContent='❌ Backend sin conexión';
+$('subStatus').textContent='⚠️ No disponible';
+}
+await loadOrders();
+}
+boot();
+</script>
+</body>
+</html>
