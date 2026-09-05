@@ -1,198 +1,340 @@
 import express from "express";
 import cors from "cors";
-import { randomUUID } from "crypto";
+import crypto from "crypto";
+import OpenAI from "openai";
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 10000;
 
-// Almacenamiento temporal en memoria (se pierde si el servidor reinicia)
-let orders = [];
-let products = [
-  { id: randomUUID(), name: "Tostada", price: 50 },
-  { id: randomUUID(), name: "Jugo natural", price: 40 },
-  { id: randomUUID(), name: "Batida", price: 80 },
-  { id: randomUUID(), name: "Queque", price: 10 }
-];
+const businesses = new Map([
+  [
+    "anamuya-demo",
+    {
+      id: "anamuya-demo",
+      name: "Negocio Demo Anamuya",
+      active: true,
+      subscriptionExpiresAt: "2099-12-31T23:59:59.000Z"
+    }
+  ]
+]);
 
-app.get("/health", (req, res) =>
+const products = new Map([
+  [
+    "anamuya-demo",
+    [
+      { id: "p1", name: "Tostada", price: 50, available: true },
+      { id: "p2", name: "Jugo natural", price: 40, available: true },
+      { id: "p3", name: "Batida", price: 80, available: true },
+      { id: "p4", name: "Queque", price: 10, available: true }
+    ]
+  ]
+]);
+
+const orders = new Map();
+
+function businessIsActive(business) {
+  return (
+    !!business &&
+    business.active === true &&
+    new Date(business.subscriptionExpiresAt) > new Date()
+  );
+}
+
+function requireActiveBusiness(req, res, next) {
+  const id =
+    req.header("x-business-id") ||
+    req.query.businessId ||
+    req.body?.businessId;
+
+  const business = businesses.get(id);
+
+  if (!businessIsActive(business)) {
+    return res.status(402).json({
+      ok: false,
+      code: "BUSINESS_SUSPENDED",
+      message: "El negocio no tiene una suscripción activa."
+    });
+  }
+
+  req.business = business;
+  next();
+}
+
+/* =========================
+   HEALTH
+========================= */
+
+app.get("/health", (_req, res) => {
   res.json({
     ok: true,
     service: "ConectaRD AI",
-    version: "7.5",
-    aiConfigured: Boolean(process.env.GEMINI_API_KEY)
-  })
-);
-
-app.get("/", (req, res) => res.sendFile(process.cwd() + "/index.html"));
-
-// ---------- Productos ----------
-app.get("/api/products", (req, res) => {
-  res.json({ ok: true, products });
+    version: "7.1",
+    aiConfigured: Boolean(process.env.OPENAI_API_KEY),
+    time: new Date().toISOString()
+  });
 });
 
-app.post("/api/products", (req, res) => {
-  const { name, price } = req.body || {};
-  const cleanName = String(name || "").trim();
-  const cleanPrice = Number(price);
+/* =========================
+   HOME
+========================= */
 
-  if (!cleanName) return res.status(400).json({ message: "El nombre es obligatorio." });
-  if (!Number.isFinite(cleanPrice) || cleanPrice < 0) {
-    return res.status(400).json({ message: "El precio no es válido." });
-  }
-
-  const product = { id: randomUUID(), name: cleanName, price: cleanPrice };
-  products.push(product);
-  res.json({ ok: true, product });
+app.get("/", (_req, res) => {
+  res.sendFile(process.cwd() + "/index.html");
 });
 
-app.put("/api/products/:id", (req, res) => {
-  const { id } = req.params;
-  const { name, price } = req.body || {};
-  const product = products.find(p => p.id === id);
-  if (!product) return res.status(404).json({ message: "Producto no encontrado." });
+/* =========================
+   BUSINESS
+========================= */
 
-  if (name !== undefined) {
-    const cleanName = String(name).trim();
-    if (!cleanName) return res.status(400).json({ message: "El nombre es obligatorio." });
-    product.name = cleanName;
+app.get("/api/business/:businessId", (req, res) => {
+  const business = businesses.get(req.params.businessId);
+
+  if (!business) {
+    return res.status(404).json({
+      ok: false,
+      message: "Negocio no encontrado."
+    });
   }
-  if (price !== undefined) {
-    const cleanPrice = Number(price);
-    if (!Number.isFinite(cleanPrice) || cleanPrice < 0) {
-      return res.status(400).json({ message: "El precio no es válido." });
+
+  res.json({
+    ok: true,
+    business: {
+      ...business,
+      active: businessIsActive(business)
     }
-    product.price = cleanPrice;
-  }
-
-  res.json({ ok: true, product });
+  });
 });
 
-app.delete("/api/products/:id", (req, res) => {
-  const { id } = req.params;
-  const before = products.length;
-  products = products.filter(p => p.id !== id);
-  if (products.length === before) {
-    return res.status(404).json({ message: "Producto no encontrado." });
-  }
-  res.json({ ok: true });
+/* =========================
+   PRODUCTS
+========================= */
+
+app.get("/api/products", requireActiveBusiness, (req, res) => {
+  res.json({
+    ok: true,
+    products: products.get(req.business.id) || []
+  });
 });
 
-// ---------- IA ----------
+/* =========================
+   OPENAI
+========================= */
+
 app.post("/api/ai", async (req, res) => {
   try {
     const message = String(req.body?.message || "").trim();
-    const reqProducts = Array.isArray(req.body?.products) ? req.body.products : products;
 
     if (!message) {
-      return res.status(400).json({ message: "Falta el mensaje." });
+      return res.status(400).json({
+        ok: false,
+        message: "Falta el mensaje."
+      });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY;
+
     if (!apiKey) {
-      return res.status(500).json({ message: "GEMINI_API_KEY no configurada en Render." });
+      return res.status(500).json({
+        ok: false,
+        message: "OPENAI_API_KEY no está configurada en Render."
+      });
     }
 
-    const catalogText = reqProducts.length
-      ? reqProducts.map(p => - ${p.name}: RD$${p.price}).join("\n")
-      : "(catálogo no disponible)";
+    const client = new OpenAI({
+      apiKey
+    });
 
-    const systemPrompt =
-      "Eres el asistente de ConectaRD AI, una plataforma dominicana de delivery.\n" +
-      "Este es el catálogo REAL y ÚNICO de productos disponibles, con sus precios exactos:\n" +
-      catalogText +
-      "\n\nReglas:\n" +
-      "- Solo puedes recomendar o mencionar productos de esta lista.\n" +
-      "- Usa siempre los precios exactos indicados arriba.\n" +
-      "- Si el cliente pide algo que no está en la lista, dile amablemente que no está disponible y sugiere algo de la lista.\n" +
-      "- Sé breve, amable y claro.";
+    const model = process.env.OPENAI_MODEL || "gpt-5";
 
-    const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          contents: [{ parts: [{ text: message }] }]
-        })
-      }
-    );
+    const catalog = products.get("anamuya-demo") || [];
 
-    const data = await response.json();
-    if (!response.ok) {
-      console.error("Gemini error:", data);
-      return res.status(500).json({ message: "Error al conectar con Gemini." });
-    }
+    const catalogText = catalog
+      .filter((p) => p.available)
+      .map((p) => `${p.name}: RD$${p.price}`)
+      .join(", ");
+
+    const response = await client.responses.create({
+      model,
+      instructions:
+        "Eres el asistente de ConectaRD AI, una plataforma dominicana de delivery. " +
+        "Ayuda al cliente a elegir productos, entender precios y preparar su pedido. " +
+        "Sé breve, amable y claro. " +
+        "Nunca inventes productos ni precios. " +
+        "El catálogo disponible actualmente es: " +
+        catalogText,
+      input: message
+    });
 
     const reply =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "No pude generar una respuesta.";
-    res.json({ reply });
+      response.output_text ||
+      "No pude generar una respuesta en este momento.";
+
+    return res.json({
+      ok: true,
+      reply
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error al conectar con la IA." });
+    console.error("OpenAI error:", error);
+
+    return res.status(500).json({
+      ok: false,
+      message: "Error al conectar con OpenAI."
+    });
   }
 });
 
-// ---------- Pedidos ----------
-app.get("/api/orders", (req, res) => {
-  res.json({ ok: true, orders });
-});
+/* =========================
+   CREATE ORDER
+========================= */
 
-app.post("/api/orders", (req, res) => {
-  try {
-    const { customer, phone, deliveryType, address, location, items, notes, total } = req.body || {};
+app.post("/api/orders", requireActiveBusiness, (req, res) => {
+  const {
+    customer,
+    phone,
+    deliveryType,
+    address,
+    location,
+    items,
+    notes,
+    total
+  } = req.body || {};
 
-    if (!customer || !phone) {
-      return res.status(400).json({ message: "Faltan datos del cliente." });
-    }
-    if (!Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ message: "El pedido no tiene productos." });
-    }
-
-    const order = {
-      id: randomUUID(),
-      customer,
-      phone,
-      deliveryType: deliveryType || "delivery",
-      address: address || "",
-      location: location || null,
-      items,
-      notes: notes || "",
-      total: Number(total) || 0,
-      status: "new",
-      createdAt: new Date().toISOString()
-    };
-
-    orders.unshift(order);
-    res.json({ ok: true, order });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error al crear el pedido." });
-  }
-});
-
-app.patch("/api/orders/:id/status", (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body || {};
-  const valid = ["new", "preparing", "on_the_way", "delivered", "cancelled"];
-
-  if (!valid.includes(status)) {
-    return res.status(400).json({ message: "Estado no válido." });
+  if (!customer || !Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({
+      ok: false,
+      message: "customer e items son obligatorios."
+    });
   }
 
-  const order = orders.find(o => o.id === id);
-  if (!order) {
-    return res.status(404).json({ message: "Pedido no encontrado." });
+  const order = {
+    id: crypto.randomUUID(),
+    businessId: req.business.id,
+    customer,
+    phone: phone || "",
+    deliveryType: deliveryType || "delivery",
+    address: address || "",
+    location: location || null,
+    items,
+    notes: notes || "",
+    total: Number(total || 0),
+    status: "new",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  orders.set(order.id, order);
+
+  res.status(201).json({
+    ok: true,
+    order
+  });
+});
+
+/* =========================
+   LIST ORDERS
+========================= */
+
+app.get("/api/orders", requireActiveBusiness, (req, res) => {
+  const list = [...orders.values()]
+    .filter((o) => o.businessId === req.business.id)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+  res.json({
+    ok: true,
+    orders: list
+  });
+});
+
+/* =========================
+   UPDATE ORDER STATUS
+========================= */
+
+app.patch("/api/orders/:id/status", requireActiveBusiness, (req, res) => {
+  const order = orders.get(req.params.id);
+
+  if (!order || order.businessId !== req.business.id) {
+    return res.status(404).json({
+      ok: false,
+      message: "Pedido no encontrado."
+    });
   }
 
-  order.status = status;
-  res.json({ ok: true, order });
+  const allowed = [
+    "new",
+    "preparing",
+    "on_the_way",
+    "delivered",
+    "cancelled"
+  ];
+
+  if (!allowed.includes(req.body?.status)) {
+    return res.status(400).json({
+      ok: false,
+      message: "Estado no válido."
+    });
+  }
+
+  order.status = req.body.status;
+  order.updatedAt = new Date().toISOString();
+
+  orders.set(order.id, order);
+
+  res.json({
+    ok: true,
+    order
+  });
 });
+
+/* =========================
+   ADMIN BUSINESSES
+========================= */
+
+app.get("/api/admin/businesses", (_req, res) => {
+  res.json({
+    ok: true,
+    businesses: [...businesses.values()].map((b) => ({
+      ...b,
+      active: businessIsActive(b)
+    }))
+  });
+});
+
+/* =========================
+   SUBSCRIPTION
+========================= */
+
+app.post("/api/admin/businesses/:id/subscription", (req, res) => {
+  const business = businesses.get(req.params.id);
+
+  if (!business) {
+    return res.status(404).json({
+      ok: false,
+      message: "Negocio no encontrado."
+    });
+  }
+
+  business.active = Boolean(req.body?.active);
+
+  if (req.body?.subscriptionExpiresAt) {
+    business.subscriptionExpiresAt = req.body.subscriptionExpiresAt;
+  }
+
+  businesses.set(business.id, business);
+
+  res.json({
+    ok: true,
+    business
+  });
+});
+
+/* =========================
+   START SERVER
+========================= */
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(ConectaRD AI 7.5 running on port ${PORT});
+  console.log(`ConectaRD AI 7.1 OpenAI running on port ${PORT}`);
 });
