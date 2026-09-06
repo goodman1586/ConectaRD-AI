@@ -3,14 +3,19 @@ import cors from "cors";
 import crypto from "crypto";
 import OpenAI from "openai";
 
-console.log("INICIANDO CONECTARD AI...");
-
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 10000;
+
+const ADMIN_KEY = process.env.ADMIN_KEY || "";
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
+
+const openai = OPENAI_API_KEY
+  ? new OpenAI({ apiKey: OPENAI_API_KEY })
+  : null;
 
 /* =========================
    NEGOCIOS
@@ -23,46 +28,18 @@ const businesses = new Map([
       id: "anamuya-demo",
       name: "Negocio Demo Anamuya",
       active: true,
+      whatsapp: "",
+      phone: "",
       subscriptionExpiresAt: "2099-12-31T23:59:59.000Z"
     }
   ]
 ]);
 
 /* =========================
-   PRODUCTOS
+   REPARTIDORES
 ========================= */
 
-const products = new Map([
-  [
-    "anamuya-demo",
-    [
-      {
-        id: "p1",
-        name: "Tostada",
-        price: 50,
-        available: true
-      },
-      {
-        id: "p2",
-        name: "Jugo natural",
-        price: 40,
-        available: true
-      },
-      {
-        id: "p3",
-        name: "Batida",
-        price: 80,
-        available: true
-      },
-      {
-        id: "p4",
-        name: "Queque",
-        price: 10,
-        available: true
-      }
-    ]
-  ]
-]);
+const drivers = new Map();
 
 /* =========================
    PEDIDOS
@@ -81,6 +58,10 @@ function businessIsActive(business) {
     new Date(business.subscriptionExpiresAt) > new Date()
   );
 }
+
+/* =========================
+   NEGOCIO ACTIVO
+========================= */
 
 function requireActiveBusiness(req, res, next) {
   const id =
@@ -103,6 +84,32 @@ function requireActiveBusiness(req, res, next) {
 }
 
 /* =========================
+   ADMINISTRADOR
+========================= */
+
+function requireAdmin(req, res, next) {
+  if (!ADMIN_KEY) {
+    return res.status(500).json({
+      ok: false,
+      code: "ADMIN_KEY_NOT_CONFIGURED",
+      message: "ADMIN_KEY no está configurada en Render."
+    });
+  }
+
+  const key = req.header("x-admin-key");
+
+  if (!key || key !== ADMIN_KEY) {
+    return res.status(401).json({
+      ok: false,
+      code: "INVALID_ADMIN_KEY",
+      message: "Clave de administrador incorrecta."
+    });
+  }
+
+  next();
+}
+
+/* =========================
    HEALTH
 ========================= */
 
@@ -110,155 +117,65 @@ app.get("/health", (_req, res) => {
   res.json({
     ok: true,
     service: "ConectaRD AI",
-    version: "OpenAI",
-    aiConfigured: Boolean(process.env.OPENAI_API_KEY),
-    time: new Date().toISOString()
+    aiConfigured: !!OPENAI_API_KEY,
+    adminConfigured: !!ADMIN_KEY
   });
 });
 
 /* =========================
-   INICIO
+   IA
 ========================= */
 
-app.get("/", (_req, res) => {
-  res.sendFile(process.cwd() + "/index.html");
-});
-
-/* =========================
-   NEGOCIO
-========================= */
-
-app.get("/api/business/:businessId", (req, res) => {
-  const business = businesses.get(req.params.businessId);
-
-  if (!business) {
-    return res.status(404).json({
-      ok: false,
-      message: "Negocio no encontrado."
-    });
-  }
-
-  res.json({
-    ok: true,
-    business: {
-      ...business,
-      active: businessIsActive(business)
-    }
-  });
-});
-
-/* =========================
-   PRODUCTOS
-========================= */
-
-app.get(
-  "/api/products",
-  requireActiveBusiness,
-  (req, res) => {
-    res.json({
-      ok: true,
-      products: products.get(req.business.id) || []
-    });
-  }
-);
-
-/* =========================
-   OPENAI
-========================= */
-
-app.post("/api/ai", async (req, res) => {
+app.post("/api/ai", requireActiveBusiness, async (req, res) => {
   try {
-    console.log("Solicitud recibida en /api/ai");
-
-    const message =
-      String(req.body?.message || "").trim();
+    const message = String(
+      req.body?.message || ""
+    ).trim();
 
     if (!message) {
       return res.status(400).json({
         ok: false,
-        message: "Falta el mensaje."
+        message: "El mensaje es obligatorio."
       });
     }
 
-    const apiKey =
-      process.env.OPENAI_API_KEY;
-
-    if (!apiKey) {
-      console.error(
-        "OPENAI_API_KEY no configurada."
-      );
-
-      return res.status(500).json({
+    if (!openai) {
+      return res.status(503).json({
         ok: false,
-        message:
-          "OPENAI_API_KEY no está configurada en Render."
+        message: "La IA no está configurada."
       });
     }
 
-    const client = new OpenAI({
-      apiKey: apiKey
+    const response = await openai.chat.completions.create({
+      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content:
+            "Eres el asistente de ConectaRD AI. Ayuda al cliente de forma clara, amable y breve con productos, precios, pedidos y delivery."
+        },
+        {
+          role: "user",
+          content: message
+        }
+      ]
     });
 
-    const model =
-      process.env.OPENAI_MODEL ||
-      "gpt-5";
-
-    const catalog =
-      products.get("anamuya-demo") || [];
-
-    const catalogText =
-      catalog
-        .filter(
-          (product) => product.available
-        )
-        .map(
-          (product) =>
-            `${product.name}: RD$${product.price}`
-        )
-        .join(", ");
-
-    const response =
-      await client.responses.create({
-        model: model,
-
-        instructions:
-          "Eres el asistente de ConectaRD AI, " +
-          "una plataforma dominicana de delivery. " +
-          "Ayuda al cliente a elegir productos, " +
-          "conocer precios y preparar su pedido. " +
-          "Sé amable, breve y claro. " +
-          "Nunca inventes productos ni precios. " +
-          "Solo puedes recomendar productos que " +
-          "estén en este catálogo: " +
-          catalogText,
-
-        input: message
-      });
-
     const reply =
-      response.output_text ||
-      "No pude generar una respuesta en este momento.";
-
-    console.log(
-      "Respuesta de OpenAI recibida."
-    );
+      response.choices?.[0]?.message?.content ||
+      "No pude generar una respuesta.";
 
     return res.json({
       ok: true,
-      reply: reply
+      reply
     });
 
   } catch (error) {
-
-    console.error(
-      "ERROR OPENAI:",
-      error
-    );
+    console.error("Error IA:", error);
 
     return res.status(500).json({
       ok: false,
-      message:
-        "Error al conectar con OpenAI."
+      message: "Error al consultar la IA."
     });
   }
 });
@@ -290,31 +207,26 @@ app.post(
     ) {
       return res.status(400).json({
         ok: false,
-        message:
-          "customer e items son obligatorios."
+        message: "customer e items son obligatorios."
       });
     }
 
-    const now =
-      new Date().toISOString();
+    const now = new Date().toISOString();
 
     const order = {
       id: crypto.randomUUID(),
 
-      businessId:
-        req.business.id,
+      businessId: req.business.id,
 
-      customer:
-        String(customer).trim(),
+      customer: String(customer).trim(),
 
-      phone:
-        phone || "",
+      phone: String(phone || "").trim(),
 
       deliveryType:
         deliveryType || "delivery",
 
       address:
-        address || "",
+        String(address || "").trim(),
 
       location:
         location || null,
@@ -322,29 +234,25 @@ app.post(
       items,
 
       notes:
-        notes || "",
+        String(notes || "").trim(),
 
       total:
         Number(total || 0),
 
-      status:
-        "new",
+      status: "new",
 
-      createdAt:
-        now,
+      createdAt: now,
 
-      updatedAt:
-        now
+      updatedAt: now
     };
 
-    orders.set(
-      order.id,
-      order
-    );
+    orders.set(order.id, order);
 
     console.log(
       "Nuevo pedido:",
-      order.id
+      order.id,
+      "WhatsApp:",
+      order.phone
     );
 
     return res.status(201).json({
@@ -363,19 +271,15 @@ app.get(
   requireActiveBusiness,
   (req, res) => {
 
-    const list =
-      [...orders.values()]
-        .filter(
-          (order) =>
-            order.businessId ===
-            req.business.id
-        )
-        .sort(
-          (a, b) =>
-            b.createdAt.localeCompare(
-              a.createdAt
-            )
-        );
+    const list = [...orders.values()]
+      .filter(
+        order =>
+          order.businessId === req.business.id
+      )
+      .sort(
+        (a, b) =>
+          b.createdAt.localeCompare(a.createdAt)
+      );
 
     return res.json({
       ok: true,
@@ -398,13 +302,11 @@ app.patch(
 
     if (
       !order ||
-      order.businessId !==
-        req.business.id
+      order.businessId !== req.business.id
     ) {
       return res.status(404).json({
         ok: false,
-        message:
-          "Pedido no encontrado."
+        message: "Pedido no encontrado."
       });
     }
 
@@ -420,27 +322,20 @@ app.patch(
       req.body?.status;
 
     if (
-      !allowedStatuses.includes(
-        newStatus
-      )
+      !allowedStatuses.includes(newStatus)
     ) {
       return res.status(400).json({
         ok: false,
-        message:
-          "Estado no válido."
+        message: "Estado no válido."
       });
     }
 
-    order.status =
-      newStatus;
+    order.status = newStatus;
 
     order.updatedAt =
       new Date().toISOString();
 
-    orders.set(
-      order.id,
-      order
-    );
+    orders.set(order.id, order);
 
     return res.json({
       ok: true,
@@ -449,56 +344,182 @@ app.patch(
   }
 );
 
-/* =========================
-   ADMINISTRACIÓN
-========================= */
+/* ==================================================
+   PANEL MAESTRO — NEGOCIOS
+================================================== */
+
+/* LISTAR NEGOCIOS */
 
 app.get(
   "/api/admin/businesses",
+  requireAdmin,
   (_req, res) => {
 
-    res.json({
-      ok: true,
+    const list =
+      [...businesses.values()].map(
+        business => ({
+          ...business,
+          active:
+            businessIsActive(business)
+        })
+      );
 
-      businesses:
-        [...businesses.values()]
-          .map(
-            (business) => ({
-              ...business,
-              active:
-                businessIsActive(
-                  business
-                )
-            })
-          )
+    return res.json({
+      ok: true,
+      businesses: list
     });
   }
 );
 
-/* =========================
-   SUSCRIPCIÓN
-========================= */
+/* CREAR NEGOCIO */
 
 app.post(
-  "/api/admin/businesses/:id/subscription",
+  "/api/admin/businesses",
+  requireAdmin,
+  (req, res) => {
+
+    const {
+      name,
+      id,
+      whatsapp,
+      phone,
+      subscriptionExpiresAt
+    } = req.body || {};
+
+    if (!name || !id) {
+      return res.status(400).json({
+        ok: false,
+        message:
+          "Nombre e ID del negocio son obligatorios."
+      });
+    }
+
+    const businessId =
+      String(id).trim();
+
+    if (businesses.has(businessId)) {
+      return res.status(409).json({
+        ok: false,
+        message:
+          "Ya existe un negocio con ese ID."
+      });
+    }
+
+    const business = {
+      id: businessId,
+
+      name:
+        String(name).trim(),
+
+      active: true,
+
+      whatsapp:
+        String(whatsapp || "").trim(),
+
+      phone:
+        String(phone || "").trim(),
+
+      subscriptionExpiresAt:
+        subscriptionExpiresAt ||
+        "2099-12-31T23:59:59.000Z"
+    };
+
+    businesses.set(
+      business.id,
+      business
+    );
+
+    return res.status(201).json({
+      ok: true,
+      business
+    });
+  }
+);
+
+/* MODIFICAR NEGOCIO */
+
+app.patch(
+  "/api/admin/businesses/:id",
+  requireAdmin,
   (req, res) => {
 
     const business =
-      businesses.get(
-        req.params.id
-      );
+      businesses.get(req.params.id);
 
     if (!business) {
       return res.status(404).json({
         ok: false,
-        message:
-          "Negocio no encontrado."
+        message: "Negocio no encontrado."
       });
     }
 
     if (
-      typeof req.body?.active ===
-      "boolean"
+      typeof req.body?.name === "string" &&
+      req.body.name.trim()
+    ) {
+      business.name =
+        req.body.name.trim();
+    }
+
+    if (
+      typeof req.body?.active === "boolean"
+    ) {
+      business.active =
+        req.body.active;
+    }
+
+    if (
+      typeof req.body?.whatsapp === "string"
+    ) {
+      business.whatsapp =
+        req.body.whatsapp.trim();
+    }
+
+    if (
+      typeof req.body?.phone === "string"
+    ) {
+      business.phone =
+        req.body.phone.trim();
+    }
+
+    if (
+      req.body?.subscriptionExpiresAt
+    ) {
+      business.subscriptionExpiresAt =
+        req.body.subscriptionExpiresAt;
+    }
+
+    businesses.set(
+      business.id,
+      business
+    );
+
+    return res.json({
+      ok: true,
+      business
+    });
+  }
+);
+
+/* SUSCRIPCIÓN */
+
+app.post(
+  "/api/admin/businesses/:id/subscription",
+  requireAdmin,
+  (req, res) => {
+
+    const business =
+      businesses.get(req.params.id);
+
+    if (!business) {
+      return res.status(404).json({
+        ok: false,
+        message: "Negocio no encontrado."
+      });
+    }
+
+    if (
+      typeof req.body?.active === "boolean"
     ) {
       business.active =
         req.body.active;
@@ -523,6 +544,93 @@ app.post(
   }
 );
 
+/* ==================================================
+   PANEL MAESTRO — REPARTIDORES
+================================================== */
+
+/* LISTAR REPARTIDORES */
+
+app.get(
+  "/api/admin/drivers",
+  requireAdmin,
+  (_req, res) => {
+
+    return res.json({
+      ok: true,
+      drivers:
+        [...drivers.values()]
+    });
+  }
+);
+
+/* CREAR REPARTIDOR */
+
+app.post(
+  "/api/admin/drivers",
+  requireAdmin,
+  (req, res) => {
+
+    const {
+      businessId,
+      name,
+      whatsapp,
+      phone
+    } = req.body || {};
+
+    if (
+      !businessId ||
+      !name
+    ) {
+      return res.status(400).json({
+        ok: false,
+        message:
+          "Negocio y nombre del repartidor son obligatorios."
+      });
+    }
+
+    const business =
+      businesses.get(businessId);
+
+    if (!business) {
+      return res.status(404).json({
+        ok: false,
+        message:
+          "El negocio no existe."
+      });
+    }
+
+    const driver = {
+      id: crypto.randomUUID(),
+
+      businessId,
+
+      name:
+        String(name).trim(),
+
+      whatsapp:
+        String(whatsapp || "").trim(),
+
+      phone:
+        String(phone || "").trim(),
+
+      active: true,
+
+      createdAt:
+        new Date().toISOString()
+    };
+
+    drivers.set(
+      driver.id,
+      driver
+    );
+
+    return res.status(201).json({
+      ok: true,
+      driver
+    });
+  }
+);
+
 /* =========================
    SERVIDOR
 ========================= */
@@ -534,10 +642,19 @@ app.listen(
     console.log(
       `ConectaRD AI running on port ${PORT}`
     );
+
+    console.log(
+      "ADMIN_KEY:",
+      ADMIN_KEY
+        ? "CONFIGURADA"
+        : "NO CONFIGURADA"
+    );
+
+    console.log(
+      "OPENAI:",
+      OPENAI_API_KEY
+        ? "CONFIGURADA"
+        : "NO CONFIGURADA"
+    );
   }
 );
-
-
-
-
-
