@@ -1,835 +1,1323 @@
-const url =
-q
-?
-'https://www.google.com/maps/search/?api=1&query=' +
-encodeURIComponent(q)
-:
-'https://www.google.com/maps/';
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
-window.open(url,'_blank');
-};
+<title>ConectaRD AI 7.2 — Multi-negocio</title>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f4f6f8;
+  color:#17202a;
+  padding-bottom:90px;
+}
+
+header{
+  background:#111827;
+  color:#fff;
+  padding:15px 18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+
+header b{
+  font-size:18px;
+}
+
+header span{
+  font-size:14px;
+  opacity:.95;
+}
+
+.wrap{
+  max-width:1050px;
+  margin:auto;
+  padding:16px;
+}
+
+.card{
+  background:#fff;
+  border-radius:16px;
+  padding:17px;
+  margin-bottom:15px;
+  box-shadow:0 3px 15px #0000000b;
+}
+
+h1,h2,h3{
+  margin-top:0;
+}
+
+h2{
+  font-size:25px;
+}
+
+h3{
+  font-size:19px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+}
+
+.products{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+
+.product,
+.order,
+.business{
+  border:1px solid #e1e5ea;
+  border-radius:12px;
+  padding:13px;
+  margin:9px 0;
+}
+
+.price{
+  font-weight:bold;
+  margin:7px 0 10px;
+  font-size:18px;
+}
+
+button{
+  border:0;
+  border-radius:9px;
+  padding:11px 13px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+button:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
+
+.primary{
+  background:#111827;
+  color:#fff;
+}
+
+.soft{
+  background:#edf1f5;
+  color:#17202a;
+}
+
+.green{
+  background:#dcfce7;
+  color:#166534;
+}
+
+.red{
+  background:#fee2e2;
+  color:#991b1b;
+}
+
+.blue{
+  background:#dbeafe;
+  color:#1e40af;
+}
+
+input,
+textarea,
+select{
+  width:100%;
+  padding:11px;
+  border:1px solid #d5dae1;
+  border-radius:9px;
+  margin:5px 0 11px;
+  font:inherit;
+}
+
+textarea{
+  min-height:90px;
+  resize:vertical;
+}
+
+.line{
+  display:flex;
+  justify-content:space-between;
+  border-bottom:1px solid #eee;
+  padding:9px 0;
+  gap:10px;
+}
+
+.total{
+  font-size:20px;
+  font-weight:bold;
+  display:flex;
+  justify-content:space-between;
+  margin-top:12px;
+}
+
+.location{
+  border:1px dashed #9ca3af;
+  border-radius:12px;
+  padding:13px;
+  background:#fafafa;
+}
+
+.muted{
+  color:#667085;
+  font-size:14px;
+}
+
+.small{
+  font-size:13px;
+}
+
+.chat{
+  height:260px;
+  overflow:auto;
+  border:1px solid #e2e6eb;
+  border-radius:12px;
+  padding:10px;
+  background:#fafafa;
+  margin-bottom:10px;
+}
+
+.msg{
+  margin:8px 0;
+  padding:10px 12px;
+  border-radius:12px;
+  max-width:90%;
+  line-height:1.4;
+}
+
+.user{
+  margin-left:auto;
+  background:#111827;
+  color:#fff;
+}
+
+.assistant{
+  background:#e9eef5;
+}
+
+.orderbar{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#fff;
+  border-top:1px solid #ddd;
+  box-shadow:0 -3px 14px #0002;
+  z-index:30;
+}
+
+.orderbar-inner{
+  max-width:1050px;
+  margin:auto;
+  padding:10px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.hidden{
+  display:none !important;
+}
+
+.success{
+  color:#176b3a;
+}
+
+.error{
+  color:#b42318;
+}
+
+.warning{
+  color:#92400e;
+}
+
+.badge{
+  background:#111827;
+  color:#fff;
+  border-radius:99px;
+  padding:4px 8px;
+  font-size:13px;
+}
+
+.status-new{
+  color:#1d4ed8;
+}
+
+.status-preparing{
+  color:#92400e;
+}
+
+.status-on_the_way{
+  color:#7c3aed;
+}
+
+.status-delivered{
+  color:#166534;
+}
+
+.status-cancelled{
+  color:#991b1b;
+}
+
+.admin-box{
+  border:1px solid #e1e5ea;
+  border-radius:12px;
+  padding:14px;
+  margin-top:10px;
+}
+
+.admin-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.top-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+}
+
+.notice{
+  border-radius:12px;
+  padding:12px;
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+}
+
+.logo-title{
+  font-size:29px;
+  font-weight:bold;
+}
+
+.business-name{
+  font-size:18px;
+  font-weight:bold;
+}
+
+.kpi{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.kpi-box{
+  border:1px solid #e1e5ea;
+  border-radius:12px;
+  padding:13px;
+  text-align:center;
+}
+
+.kpi-number{
+  font-size:24px;
+  font-weight:bold;
+}
+
+@media(max-width:720px){
+  .grid,
+  .products{
+    grid-template-columns:1fr;
+  }
+
+  .kpi{
+    grid-template-columns:1fr;
+  }
+
+  .orderbar-inner{
+    padding:9px 12px;
+  }
+
+  header{
+    align-items:flex-start;
+  }
+
+  header span{
+    text-align:right;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <b>ConectaRD AI</b>
+  <span>7.2 · Multi-negocio</span>
+</header>
+
+<div class="wrap">
+
+<!-- =====================================================
+     ESTADO DEL NEGOCIO
+===================================================== -->
+
+<div class="card">
+
+  <h2>🏪 ConectaRD AI</h2>
+
+  <div class="line">
+    <span>Negocio</span>
+    <b id="businessName">Cargando...</b>
+  </div>
+
+  <div class="line">
+    <span>Estado</span>
+    <b id="businessStatus">Comprobando...</b>
+  </div>
+
+  <div class="line">
+    <span>IA</span>
+    <b id="aiStatus">Comprobando...</b>
+  </div>
+
+  <div class="line">
+    <span>Conexión</span>
+    <b id="backendStatus">Comprobando...</b>
+  </div>
+
+</div>
+
+
+<!-- =====================================================
+     PANEL MAESTRO
+===================================================== -->
+
+<div class="card">
+
+  <h2>👑 Panel Maestro del Administrador</h2>
+
+  <p class="muted">
+    Administración de negocios, suscripciones y estado de la plataforma.
+  </p>
+
+  <div class="notice">
+    <b>Administración de ConectaRD AI</b>
+    <p class="muted">
+      Desde aquí se pueden consultar los negocios registrados y gestionar
+      su estado de suscripción cuando el backend lo permita.
+    </p>
+  </div>
+
+  <div class="top-actions">
+    <button
+      type="button"
+      id="loadBusinessesBtn"
+      class="primary">
+      🔄 Cargar negocios
+    </button>
+  </div>
+
+  <div id="adminStatus" class="muted">
+    Presiona "Cargar negocios".
+  </div>
+
+  <div id="businessesList"></div>
+
+</div>
+
+
+<!-- =====================================================
+     ASISTENTE IA
+===================================================== -->
+
+<div class="card">
+
+  <h2>🤖 Asistente IA</h2>
+
+  <p class="muted">
+    La respuesta viene del backend.
+    La clave de OpenAI nunca está en esta página.
+  </p>
+
+  <div id="chat" class="chat"></div>
+
+  <div style="display:flex;gap:8px">
+
+    <input
+      id="aiInput"
+      style="margin:0"
+      placeholder="Ej.: Tengo RD$200, ¿qué me recomiendas?">
+
+    <button
+      type="button"
+      id="aiBtn"
+      class="primary">
+      Enviar
+    </button>
+
+  </div>
+
+  <div
+    style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">
+
+    <button
+      type="button"
+      class="soft quick"
+      data-q="Quiero ver el menú">
+      Ver menú
+    </button>
+
+    <button
+      type="button"
+      class="soft quick"
+      data-q="Tengo RD$200, ¿qué me recomiendas?">
+      Recomiéndame algo
+    </button>
+
+    <button
+      type="button"
+      class="soft quick"
+      data-q="Quiero hacer un pedido">
+      Hacer pedido
+    </button>
+
+  </div>
+
+</div>
+
+
+<!-- =====================================================
+     RESUMEN
+===================================================== -->
+
+<div class="card">
+
+  <h2>📊 Resumen</h2>
+
+  <div class="kpi">
+
+    <div class="kpi-box">
+      <div class="muted">Pedidos</div>
+      <div
+        class="kpi-number"
+        id="kpiOrders">
+        0
+      </div>
+    </div>
+
+    <div class="kpi-box">
+      <div class="muted">En preparación</div>
+      <div
+        class="kpi-number"
+        id="kpiPreparing">
+        0
+      </div>
+    </div>
+
+    <div class="kpi-box">
+      <div class="muted">En camino</div>
+      <div
+        class="kpi-number"
+        id="kpiDelivery">
+        0
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =====================================================
+     PANEL DEL NEGOCIO
+===================================================== -->
+
+<div class="card">
+
+  <h2>📦 Panel del negocio</h2>
+
+  <p class="muted">
+    Los pedidos confirmados se consultan desde el backend.
+  </p>
+
+  <div id="dashboard">
+    <p class="muted">Cargando...</p>
+  </div>
+
+</div>
+
+
+<!-- =====================================================
+     PANEL DEL REPARTIDOR
+===================================================== -->
+
+<div class="card">
+
+  <h2>🚴 Panel del repartidor</h2>
+
+  <p class="muted">
+    Aquí aparecen los pedidos que están preparando o en camino.
+  </p>
+
+  <div id="driverDashboard">
+    <p class="muted">Cargando...</p>
+  </div>
+
+</div>
+
+
+<!-- =====================================================
+     CATÁLOGO
+===================================================== -->
+
+<div class="card">
+
+  <h2>🛒 Haz tu pedido</h2>
+
+  <p class="muted">
+    Selecciona los productos que deseas comprar.
+  </p>
+
+  <div id="products" class="products"></div>
+
+</div>
+
+
+<!-- =====================================================
+     PEDIDO Y ENTREGA
+===================================================== -->
+
+<div class="grid">
+
+  <div
+    class="card"
+    id="pedidoCard">
+
+    <h2>
+      🧾 Tu pedido
+      <span
+        id="cartCount"
+        class="badge">
+        0
+      </span>
+    </h2>
+
+    <div id="cart">
+      <p class="muted">
+        No has agregado productos.
+      </p>
+    </div>
+
+    <div class="total">
+      <span>Subtotal</span>
+      <span id="subtotal">RD$0</span>
+    </div>
+
+  </div>
+
+
+  <div class="card">
+
+    <h2>📍 Datos de entrega</h2>
+
+    <label>Nombre del cliente</label>
+
+    <input
+      id="customer"
+      placeholder="Nombre del cliente">
+
+
+    <label>WhatsApp</label>
+
+    <input
+      id="phone"
+      placeholder="WhatsApp">
+
+
+    <label>Tipo de entrega</label>
+
+    <select id="delivery">
+
+      <option value="delivery">
+        🚚 Delivery
+      </option>
+
+      <option value="pickup">
+        🏪 Recoger en el negocio
+      </option>
+
+    </select>
+
+
+    <div id="deliveryBox">
+
+      <div class="location">
+
+        <b>📍 Ubicación de entrega</b>
+
+        <p class="muted">
+          Usa GPS o escribe una dirección como respaldo.
+        </p>
+
+        <button
+          type="button"
+          id="locationBtn"
+          class="primary">
+          Compartir mi ubicación
+        </button>
+
+        <p
+          id="locStatus"
+          class="muted">
+          Ubicación pendiente.
+        </p>
+
+
+        <label>Dirección</label>
+
+        <input
+          id="address"
+          placeholder="Calle, número, sector, referencia">
+
+
+        <button
+          type="button"
+          id="mapsBtn"
+          class="soft">
+          Abrir Google Maps
+        </button>
+
+      </div>
+
+
+      <label>Instrucciones</label>
+
+      <textarea
+        id="notes"
+        placeholder="Ej.: casa azul, segundo piso..."></textarea>
+
+    </div>
+
+
+    <button
+      type="button"
+      id="confirmBtn"
+      class="green"
+      style="width:100%">
+      Confirmar pedido
+    </button>
+
+    <p
+      id="orderStatus"
+      class="muted">
+    </p>
+
+  </div>
+
+</div>
+
+
+<!-- =====================================================
+     RESULTADO
+===================================================== -->
+
+<div
+  class="card hidden"
+  id="result">
+
+  <h2>✅ Pedido confirmado</h2>
+
+  <div id="receipt"></div>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     BARRA DEL PEDIDO
+===================================================== -->
+
+<div class="orderbar">
+
+  <div class="orderbar-inner">
+
+    <div>
+      <b>🛒 Pedido</b>
+
+      <span id="barItems">
+        0 productos ·
+      </span>
+
+      <strong id="barTotal">
+        RD$0
+      </strong>
+    </div>
+
+    <button
+      type="button"
+      id="viewOrderBtn"
+      class="primary">
+      Ver pedido
+    </button>
+
+  </div>
+
+</div>
+
+
+<script>
+
+'use strict';
 
 
 /* =====================================================
-   CHAT IA
+   CONFIGURACIÓN
 ===================================================== */
 
-function addChat(role,text){
-const d=document.createElement('div');
-d.className='msg '+role;
-d.textContent=String(text ?? '');
-$('chat').appendChild(d);
-$('chat').scrollTop=$('chat').scrollHeight;
-}
+const BUSINESS_ID =
+  new URLSearchParams(window.location.search)
+    .get('businessId') ||
+  'anamuya-demo';
 
 
-async function askAI(){
-
-const input=$('aiInput');
-const q=input.value.trim();
-
-if(!q)return;
-
-addChat('user',q);
-
-input.value='';
-
-$('aiBtn').disabled=true;
-$('aiBtn').textContent='...';
-
-try{
-
-const d=await api('/api/ai',{
-method:'POST',
-body:JSON.stringify({
-message:q
-})
-});
-
-addChat(
-'assistant',
-d.reply || 'No pude generar una respuesta.'
-);
-
-}catch(e){
-
-addChat(
-'assistant',
-'⚠️ '+e.message
-);
-
-}finally{
-
-$('aiBtn').disabled=false;
-$('aiBtn').textContent='Enviar';
-
-}
-
-}
+const API = '';
 
 
-$('aiBtn').onclick=askAI;
-
-$('aiInput').onkeydown=e=>{
-
-if(e.key==='Enter'){
-
-e.preventDefault();
-
-askAI();
-
-}
-
-};
+const $ = id =>
+  document.getElementById(id);
 
 
-document
-.querySelectorAll('.quick')
-.forEach(
-b =>
-b.onclick=()=>{
+let productsData = [];
 
-$('aiInput').value=b.dataset.q;
+let cart = {};
 
-askAI();
+let coords = null;
 
-}
-);
+let orders = [];
 
 
 /* =====================================================
-   PEDIDO
+   UTILIDADES
 ===================================================== */
 
-async function confirmOrder(){
+function money(value){
 
-const ks=Object.keys(cart);
-
-const name=$('customer').value.trim();
-
-const phone=$('phone').value.trim();
-
-const delivery=$('delivery').value;
-
-const address=$('address').value.trim();
-
-if(!ks.length){
-
-alert('Agrega al menos un producto.');
-
-return;
-
-}
-
-if(!name || !phone){
-
-alert('Completa nombre y WhatsApp.');
-
-return;
-
-}
-
-if(
-delivery==='delivery' &&
-!coords &&
-!address
-){
-
-alert(
-'Comparte GPS o escribe una dirección.'
-);
-
-return;
+  return 'RD$' +
+    Number(value || 0)
+      .toLocaleString('es-DO');
 
 }
 
 
-const items=ks.map(k=>({
+function escapeHtml(value){
 
-name:k,
-
-quantity:cart[k],
-
-unitPrice:
-productsData.find(
-x=>x[0]===k
-)[1]
-
-}));
-
-
-const subtotal=items.reduce(
-
-(s,x)=>
-s+x.quantity*x.unitPrice,
-
-0
-
-);
-
-
-const fee=
-delivery==='delivery'
-?50
-:0;
-
-
-const total=subtotal+fee;
-
-
-const location=
-coords
-?{
-lat:coords.lat,
-lng:coords.lng,
-accuracy:coords.accuracy
-}
-:null;
-
-
-$('confirmBtn').disabled=true;
-
-$('orderStatus').textContent=
-'Enviando pedido...';
-
-
-try{
-
-const d=await api(
-'/api/orders',
-{
-method:'POST',
-
-body:JSON.stringify({
-
-customer:name,
-
-phone:phone,
-
-deliveryType:delivery,
-
-address:address,
-
-location:location,
-
-items:items,
-
-notes:
-$('notes').value.trim(),
-
-total:total
-
-})
-
-}
-);
-
-
-const o=d.order;
-
-
-$('receipt').innerHTML=`
-
-<div class="line">
-<span>Pedido</span>
-<b>#${escapeHtml(o.id.slice(0,8))}</b>
-</div>
-
-<div class="line">
-<span>Cliente</span>
-<b>${escapeHtml(name)}</b>
-</div>
-
-<div class="line">
-<span>WhatsApp</span>
-<b>${escapeHtml(phone)}</b>
-</div>
-
-<div class="line">
-<span>Productos</span>
-<b>
-${escapeHtml(
-items
-.map(
-x=>x.quantity+' × '+x.name
-)
-.join(', ')
-)}
-</b>
-</div>
-
-<div class="line">
-<span>Delivery</span>
-<b>
-${
-delivery==='delivery'
-?money(fee)
-:'Recogida'
-}
-</b>
-</div>
-
-<div class="line">
-<span>Total</span>
-<b>${money(total)}</b>
-</div>
-
-`;
-
-
-$('result')
-.classList
-.remove('hidden');
-
-
-lastOrder={
-id:o.id,
-customer:name,
-phone:phone,
-items:items,
-total:total
-};
-
-
-cart={};
-
-coords=null;
-
-renderCart();
-
-
-$('orderStatus').textContent=
-'✅ Pedido enviado al negocio.';
-
-
-await loadOrders();
-
-
-$('result')
-.scrollIntoView({
-behavior:'smooth'
-});
-
-
-}catch(e){
-
-$('orderStatus').textContent=
-'⚠️ '+e.message;
-
-}finally{
-
-$('confirmBtn').disabled=false;
-
-}
+  return String(value ?? '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
 
 }
 
 
-$('confirmBtn').onclick=confirmOrder;
+async function api(path, options = {}){
 
+  const headers = {
+    'Content-Type':'application/json',
+    'x-business-id':BUSINESS_ID,
+    ...(options.headers || {})
+  };
 
-$('viewOrderBtn').onclick=()=>
+  const response =
+    await fetch(API + path,{
+      ...options,
+      headers
+    });
 
-$('pedidoCard')
-.scrollIntoView({
-behavior:'smooth'
-});
+  let data = null;
 
+  try{
+    data = await response.json();
+  }catch(e){
+    data = null;
+  }
 
-/* =====================================================
-   GOOGLE MAPS DE PEDIDOS
-===================================================== */
+  if(!response.ok){
 
-function mapsFor(o){
+    throw new Error(
+      data?.message ||
+      `Error HTTP ${response.status}`
+    );
 
-if(
-o.location &&
-o.location.lat
-){
+  }
 
-return
-'https://www.google.com/maps/dir/?api=1&destination='+
-o.location.lat+
-','+
-o.location.lng;
-
-}
-
-if(o.address){
-
-return
-'https://www.google.com/maps/search/?api=1&query='+
-encodeURIComponent(o.address);
-
-}
-
-return
-'https://www.google.com/maps/';
-
-}
-
-
-function statusLabel(s){
-
-return({
-
-new:'Nuevo',
-
-preparing:'Preparando',
-
-on_the_way:'En camino',
-
-delivered:'Entregado',
-
-cancelled:'Cancelado'
-
-})[s] || s;
-
-}
-
-
-async function setStatus(id,status){
-
-try{
-
-await api(
-'/api/orders/'+id+'/status',
-{
-method:'PATCH',
-
-body:JSON.stringify({
-status:status
-})
-
-}
-);
-
-await loadOrders();
-
-}catch(e){
-
-alert(e.message);
-
-}
+  return data;
 
 }
 
 
 /* =====================================================
-   PANEL DEL NEGOCIO
+   NEGOCIO
 ===================================================== */
 
-function renderDash(){
+async function loadBusiness(){
 
-if(!orders.length){
+  try{
 
-$('dashboard').innerHTML=
-'<p class="muted">Todavía no hay pedidos.</p>';
+    const data =
+      await api(
+        '/api/business/' +
+        encodeURIComponent(BUSINESS_ID)
+      );
 
-return;
+    const business =
+      data.business;
 
-}
+    $('businessName').textContent =
+      business.name ||
+      BUSINESS_ID;
 
+    if(business.active){
 
-$('dashboard').innerHTML=
+      $('businessStatus').textContent =
+        '✅ Activo';
 
-orders.map(o=>`
+      $('businessStatus')
+        .className =
+        'success';
 
-<div class="order">
+    }else{
 
-<div class="line">
+      $('businessStatus').textContent =
+        '⚠️ Inactivo';
 
-<b>
-Pedido #${escapeHtml(o.id.slice(0,8))}
-·
-${escapeHtml(o.customer)}
-</b>
+      $('businessStatus')
+        .className =
+        'error';
 
-<select
-data-id="${escapeHtml(o.id)}"
-class="status"
->
+    }
 
-${
-[
-'new',
-'preparing',
-'on_the_way',
-'delivered',
-'cancelled'
-]
-.map(s=>`
+  }catch(error){
 
-<option
-value="${s}"
-${s===o.status?'selected':''}
->
-${statusLabel(s)}
-</option>
+    $('businessName').textContent =
+      'No disponible';
 
-`).join('')
-}
+    $('businessStatus').textContent =
+      '⚠️ No disponible';
 
-</select>
+    $('businessStatus').className =
+      'error';
 
-</div>
-
-
-<p class="muted">
-
-${escapeHtml(o.phone || '')}
-
-<br>
-
-${
-escapeHtml(
-(o.items || [])
-.map(
-x=>x.quantity+' × '+x.name
-)
-.join(', ')
-)
-}
-
-<br>
-
-${
-o.location
-?
-escapeHtml(
-o.location.lat+
-', '+
-o.location.lng
-)
-:
-escapeHtml(
-o.address ||
-'Sin ubicación'
-)
-}
-
-</p>
-
-
-<b>${money(o.total)}</b>
-
-${
-o.location || o.address
-?
-`
-
-<button
-type="button"
-class="soft"
-onclick="window.open('${mapsFor(o)}','_blank')"
->
-🗺️ Ubicación
-</button>
-
-`
-:
-''
-}
-
-</div>
-
-`).join('');
-
-
-document
-.querySelectorAll('.status')
-.forEach(
-
-s=>
-
-s.onchange=()=>
-
-setStatus(
-s.dataset.id,
-s.value
-)
-
-);
+  }
 
 }
 
 
 /* =====================================================
-   PANEL REPARTIDOR
+   PRODUCTOS
 ===================================================== */
 
-function renderDriver(){
+async function loadProducts(){
 
-const active=
-orders.filter(
-o=>
-o.status==='preparing' ||
-o.status==='on_the_way'
-);
+  try{
+
+    const data =
+      await api(
+        '/api/products?businessId=' +
+        encodeURIComponent(BUSINESS_ID)
+      );
+
+    productsData =
+      Array.isArray(data.products)
+        ? data.products
+        : [];
+
+    renderProducts();
+
+  }catch(error){
+
+    $('products').innerHTML =
+      '<p class="error">' +
+      escapeHtml(error.message) +
+      '</p>';
+
+  }
+
+}
 
 
-if(!active.length){
+function renderProducts(){
 
-$('driverDashboard').innerHTML=
-'<p class="muted">No hay pedidos para entregar ahora.</p>';
+  if(!productsData.length){
 
-return;
+    $('products').innerHTML =
+      '<p class="muted">' +
+      'No hay productos disponibles.' +
+      '</p>';
+
+    return;
+  }
+
+
+  $('products').innerHTML =
+    productsData
+      .filter(product => product.available !== false)
+      .map(product => `
+
+        <div class="product">
+
+          <div class="business-name">
+            ${escapeHtml(product.name)}
+          </div>
+
+          <div class="price">
+            ${money(product.price)}
+          </div>
+
+          <button
+            type="button"
+            class="primary addProduct"
+            data-id="${escapeHtml(product.id)}">
+
+            ➕ Agregar
+
+          </button>
+
+        </div>
+
+      `)
+      .join('');
+
+
+  document
+    .querySelectorAll('.addProduct')
+    .forEach(button => {
+
+      button.onclick = () => {
+
+        addToCart(
+          button.dataset.id
+        );
+
+      };
+
+    });
 
 }
 
 
-$('driverDashboard').innerHTML=
+function addToCart(id){
 
-active.map(o=>`
+  const product =
+    productsData.find(
+      item => item.id === id
+    );
 
-<div class="order">
+  if(!product) return;
 
-<b>
-Pedido #${escapeHtml(o.id.slice(0,8))}
-·
-${escapeHtml(o.customer)}
-</b>
+  cart[id] =
+    (cart[id] || 0) + 1;
 
-<p>
-
-${escapeHtml(
-o.address ||
-(
-o.location
-?
-o.location.lat+', '+o.location.lng
-:
-'Sin ubicación'
-)
-)}
-
-</p>
-
-<p>${money(o.total)}</p>
-
-
-<button
-type="button"
-class="primary nav"
-data-id="${escapeHtml(o.id)}"
->
-🗺️ Navegar
-</button>
-
-
-<button
-type="button"
-class="green done"
-data-id="${escapeHtml(o.id)}"
->
-✅ Entregado
-</button>
-
-</div>
-
-`).join('');
-
-
-document
-.querySelectorAll('.nav')
-.forEach(
-
-b=>{
-
-b.onclick=()=>{
-
-const o=
-orders.find(
-x=>x.id===b.dataset.id
-);
-
-if(o){
-
-window.open(
-mapsFor(o),
-'_blank'
-);
-
-}
-
-};
-
-}
-);
-
-
-document
-.querySelectorAll('.done')
-.forEach(
-
-b=>
-
-b.onclick=()=>
-
-setStatus(
-b.dataset.id,
-'delivered'
-)
-
-);
+  renderCart();
 
 }
 
 
 /* =====================================================
-   CARGAR PEDIDOS
+   CARRITO
 ===================================================== */
 
-async function loadOrders(){
+function renderCart(){
 
-try{
+  const ids =
+    Object.keys(cart)
+      .filter(id => cart[id] > 0);
 
-const d=
-await api('/api/orders');
 
-orders=
-Array.isArray(d.orders)
-?
-d.orders
-:
-[];
+  if(!ids.length){
 
-renderDash();
+    $('cart').innerHTML =
+      '<p class="muted">' +
+      'No has agregado productos.' +
+      '</p>';
 
-renderDriver();
+  }else{
 
-}catch(e){
+    $('cart').innerHTML =
+      ids.map(id => {
 
-$('dashboard').innerHTML=
-'<p class="error">'+
-escapeHtml(e.message)+
-'</p>';
+        const product =
+          productsData.find(
+            item => item.id === id
+          );
 
-$('driverDashboard').innerHTML=
-'<p class="error">'+
-escapeHtml(e.message)+
-'</p>';
+        if(!product) return '';
 
-}
+        const quantity =
+          cart[id];
+
+        const total =
+          quantity *
+          Number(product.price);
+
+        return `
+
+          <div class="order">
+
+            <div class="line">
+
+              <span>
+                ${escapeHtml(product.name)}
+              </span>
+
+              <b>
+                ${money(total)}
+              </b>
+
+            </div>
+
+            <div
+              style="
+              display:flex;
+              align-items:center;
+              justify-content:space-between;
+              gap:8px">
+
+              <span>
+                Cantidad: ${quantity}
+              </span>
+
+              <div
+                style="
+                display:flex;
+                gap:5px">
+
+                <button
+                  type="button"
+                  class="soft minus"
+                  data-id="${escapeHtml(id)}">
+                  −
+                </button>
+
+                <button
+                  type="button"
+                  class="soft plus"
+                  data-id="${escapeHtml(id)}">
+                  +
+                </button>
+
+                <button
+                  type="button"
+                  class="red remove"
+                  data-id="${escapeHtml(id)}">
+                  Eliminar
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        `;
+
+      }).join('');
+
+  }
+
+
+  ids.forEach(id => {
+
+    const minus =
+      document.querySelector(
+        `.minus[data-id="${CSS.escape(id)}"]`
+      );
+
+    const plus =
+      document.querySelector(
+        `.plus[data-id="${CSS.escape(id)}"]`
+      );
+
+    const remove =
+      document.querySelector(
+        `.remove[data-id="${CSS.escape(id)}"]`
+      );
+
+
+    if(minus){
+
+      minus.onclick = () => {
+
+        cart[id]--;
+
+        if(cart[id] <= 0){
+          delete cart[id];
+        }
+
+        renderCart();
+
+      };
+
+    }
+
+
+    if(plus){
+
+      plus.onclick = () => {
+
+        cart[id]++;
+
+        renderCart();
+
+      };
+
+    }
+
+
+    if(remove){
+
+      remove.onclick = () => {
+
+        delete cart[id];
+
+        renderCart();
+
+      };
+
+    }
+
+  });
+
+
+  const subtotal =
+    ids.reduce(
+      (sum,id) => {
+
+        const product =
+          productsData.find(
+            item => item.id === id
+          );
+
+        return sum +
+          Number(product?.price || 0) *
+          cart[id];
+
+      },
+      0
+    );
+
+
+  const count =
+    ids.reduce(
+      (sum,id) =>
+        sum + cart[id],
+      0
+    );
+
+
+  $('subtotal').textContent =
+    money(subtotal);
+
+  $('cartCount').textContent =
+    count;
+
+  $('barItems').textContent =
+    count +
+    ' producto' +
+    (count === 1 ? '' : 's') +
+    ' · ';
+
+  $('barTotal').textContent =
+    money(subtotal);
 
 }
 
 
 /* =====================================================
-   WHATSAPP CLIENTE
+   DELIVERY
 ===================================================== */
 
-$('customerWhatsappBtn').onclick=()=>{
+function deliveryChanged(){
 
-if(!lastOrder){
-
-alert('No hay un pedido confirmado.');
-
-return;
-
-}
-
-
-const message=
-'Hola, mi pedido en ConectaRD AI es el #'+
-String(lastOrder.id).slice(0,8)+
-'. Total: '+
-money(lastOrder.total)+
-'.';
-
-
-const number=
-cleanWhatsappNumber(
-lastOrder.phone
-);
-
-
-if(!number){
-
-alert(
-'El número de WhatsApp no es válido.'
-);
-
-return;
+  $('deliveryBox')
+    .classList
+    .toggle(
+      'hidden',
+      $('delivery').value !== 'delivery'
+    );
 
 }
 
 
-window.open(
-'https://wa.me/'+
-number+
-'?text='+
-encodeURIComponent(message),
-'_blank'
-);
-
-};
+$('delivery')
+  .onchange =
+  deliveryChanged;
 
 
-/* =====================================================
-   INICIO
-===================================================== */
+$('locationBtn')
+  .onclick = () => {
 
-async function boot(){
-
-renderProducts();
-
-renderCart();
+    $('locStatus')
+      .textContent =
+      '📍 Solicitando ubicación...';
 
 
-addChat(
-'assistant',
-'¡Hola! Soy la IA de ConectaRD. Puedo ayudarte con el menú, precios y recomendaciones.'
-);
+    if(!window.isSecureContext){
+
+      $('locStatus')
+        .textContent =
+        '⚠️ Abre la página desde HTTPS.';
+
+      return;
+
+    }
 
 
-try{
+    if(!navigator.geolocation){
 
-const h=
-await fetch(
-API+'/health'
-)
-.then(
-r=>r.json()
-);
+      $('locStatus')
+        .textContent =
+        'GPS no disponible. Escribe la dirección.';
 
+      return;
 
-$('publicAiStatus')
-.textContent=
-h.aiConfigured
-?
-'✅ IA conectada'
-:
-'⚠️ Falta configurar IA';
+    }
 
 
-$('publicSubStatus')
-.textContent=
-'✅ Backend activo';
+    navigator.geolocation
+      .getCurrentPosition(
+
+        position => {
+
+          coords = {
+
+            lat:
+              position.coords.latitude,
+
+            lng:
+              position.coords.longitude,
+
+            accuracy:
+              Math.round(
+                position.coords.accuracy || 0
+              )
+
+          };
 
 
-}catch(e){
+          $('locStatus')
+            .textContent =
+            '✅ Ubicación compartida. ' +
+            'Precisión aproximada: ' +
+            coords.accuracy +
+            ' m';
 
-$('publicAiStatus')
-.textContent=
-'❌ Backend sin conexión';
+        },
 
-$('publicSubStatus')
-.textContent=
-'⚠️ No disponible';
+        error => {
 
-}
-
-
-await loadOrders();
-
-}
-
-
-boot();
-
-</script>
-
-</body>
-
-</html>
+          $('l
