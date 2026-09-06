@@ -1,1732 +1,835 @@
-<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-
-<title>ConectaRD AI 7.2 — Multi-negocio</title>
-
-<style>
-*{box-sizing:border-box}
-
-body{
-margin:0;
-font-family:Arial,sans-serif;
-background:#f4f6f8;
-color:#17202a;
-padding-bottom:90px
-}
-
-header{
-background:#111827;
-color:#fff;
-padding:15px 18px;
-display:flex;
-justify-content:space-between;
-align-items:center
-}
-
-.wrap{
-max-width:1050px;
-margin:auto;
-padding:16px
-}
-
-.card{
-background:#fff;
-border-radius:16px;
-padding:17px;
-margin-bottom:15px;
-box-shadow:0 3px 15px #0000000b
-}
-
-.grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:15px
-}
-
-.products{
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:10px
-}
-
-.product,.order{
-border:1px solid #e1e5ea;
-border-radius:12px;
-padding:13px;
-margin:9px 0
-}
-
-.price{
-font-weight:bold;
-margin:7px 0 10px
-}
-
-button{
-border:0;
-border-radius:9px;
-padding:11px 13px;
-font-weight:bold;
-cursor:pointer
-}
-
-button:disabled{
-opacity:.6;
-cursor:not-allowed
-}
-
-.primary{
-background:#111827;
-color:#fff
-}
-
-.soft{
-background:#edf1f5
-}
-
-.green{
-background:#dcfce7;
-color:#166534
-}
-
-.red{
-background:#fee2e2;
-color:#991b1b
-}
-
-.whatsapp{
-background:#25d366;
-color:#fff
-}
-
-input,textarea,select{
-width:100%;
-padding:11px;
-border:1px solid #d5dae1;
-border-radius:9px;
-margin:5px 0 11px;
-font:inherit
-}
-
-.line{
-display:flex;
-justify-content:space-between;
-border-bottom:1px solid #eee;
-padding:9px 0;
-gap:10px
-}
-
-.total{
-font-size:20px;
-font-weight:bold;
-display:flex;
-justify-content:space-between;
-margin-top:12px
-}
-
-.location{
-border:1px dashed #9ca3af;
-border-radius:12px;
-padding:13px;
-background:#fafafa
-}
-
-.muted{
-color:#667085;
-font-size:14px
-}
-
-.chat{
-height:240px;
-overflow:auto;
-border:1px solid #e2e6eb;
-border-radius:12px;
-padding:10px;
-background:#fafafa;
-margin-bottom:10px
-}
-
-.msg{
-margin:8px 0;
-padding:10px 12px;
-border-radius:12px;
-max-width:90%
-}
-
-.user{
-margin-left:auto;
-background:#111827;
-color:#fff
-}
-
-.assistant{
-background:#e9eef5
-}
-
-.orderbar{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-background:#fff;
-border-top:1px solid #ddd;
-box-shadow:0 -3px 14px #0002;
-z-index:30
-}
-
-.orderbar-inner{
-max-width:1050px;
-margin:auto;
-padding:10px 16px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:12px
-}
-
-.hidden{
-display:none!important
-}
-
-.success{
-color:#176b3a
-}
-
-.error{
-color:#b42318
-}
-
-.badge{
-background:#111827;
-color:#fff;
-border-radius:99px;
-padding:4px 8px
-}
-
-.adminBox{
-border:2px solid #111827;
-border-radius:14px;
-padding:15px;
-background:#fafafa
-}
-
-.small{
-font-size:13px
-}
-
-.actions{
-display:flex;
-gap:7px;
-flex-wrap:wrap;
-margin-top:10px
-}
-
-hr{
-border:0;
-border-top:1px solid #ddd;
-margin:18px 0
-}
-
-@media(max-width:720px){
-.grid,.products{
-grid-template-columns:1fr
-}
-
-.orderbar-inner{
-padding:9px 12px
-}
-
-header{
-font-size:14px
-}
-}
-</style>
-</head>
-
-<body>
-
-<header>
-<b>ConectaRD AI</b>
-<span>7.2 · Multi-negocio</span>
-</header>
-
-<div class="wrap">
-
-<!-- =====================================================
-     PANEL MAESTRO
-===================================================== -->
-
-<div class="card">
-
-<h2>👑 Panel Maestro del Administrador</h2>
-
-<p class="muted">
-Aquí tú administras negocios, suscripciones y repartidores.
-</p>
-
-<div id="adminLogin">
-
-<input
-id="adminKey"
-type="password"
-placeholder="Llave de administrador"
-autocomplete="off"
->
-
-<button
-type="button"
-id="adminLoginBtn"
-class="primary"
->
-🔐 Entrar como administrador
-</button>
-
-<p id="adminLoginStatus" class="muted"></p>
-
-</div>
-
-
-<div id="adminPanel" class="hidden">
-
-<div class="adminBox">
-
-<div class="line">
-<span>Administrador</span>
-<b class="success">✅ Autenticado</b>
-</div>
-
-<div class="line">
-<span>Backend</span>
-<b id="adminBackendStatus">Comprobando...</b>
-</div>
-
-<div class="line">
-<span>IA</span>
-<b id="adminAiStatus">Comprobando...</b>
-</div>
-
-</div>
-
-
-<hr>
-
-<h3>🏪 Negocio</h3>
-
-<div class="line">
-<span>Negocio</span>
-<b>Negocio Demo Anamuya</b>
-</div>
-
-<div class="line">
-<span>ID</span>
-<b>anamuya-demo</b>
-</div>
-
-<div class="line">
-<span>Estado</span>
-<b id="subStatus">Comprobando...</b>
-</div>
-
-
-<hr>
-
-<h3>💳 Suscripción</h3>
-
-<label>
-Fecha y hora de vencimiento
-</label>
-
-<input
-id="subscriptionDate"
-type="datetime-local"
->
-
-<div class="actions">
-
-<button
-type="button"
-id="activateBusinessBtn"
-class="green"
->
-✅ Activar / actualizar
-</button>
-
-<button
-type="button"
-id="suspendBusinessBtn"
-class="red"
->
-⛔ Suspender
-</button>
-
-</div>
-
-<p
-id="subscriptionStatus"
-class="muted"
-></p>
-
-
-<hr>
-
-<h3>🚴 Repartidor</h3>
-
-<p class="muted">
-Número de WhatsApp que recibirá los pedidos de delivery.
-</p>
-
-<label>
-WhatsApp del repartidor
-</label>
-
-<input
-id="driverWhatsapp"
-type="tel"
-placeholder="Ej.: 18091234567"
->
-
-<button
-type="button"
-id="saveDriverBtn"
-class="primary"
->
-💾 Guardar WhatsApp del repartidor
-</button>
-
-<p id="driverSaveStatus" class="muted"></p>
-
-
-<hr>
-
-<h3>📱 Comunicación</h3>
-
-<p class="muted">
-El cliente puede comunicarse con el negocio y el repartidor puede recibir el pedido por WhatsApp.
-</p>
-
-
-<button
-type="button"
-id="logoutAdminBtn"
-class="soft"
->
-🚪 Cerrar sesión
-</button>
-
-</div>
-
-</div>
-
-
-<!-- =====================================================
-     ESTADO DEL NEGOCIO
-===================================================== -->
-
-<div class="card">
-
-<h2>🏪 Negocio Demo Anamuya</h2>
-
-<div class="line">
-<span>Estado</span>
-<b id="publicSubStatus">Comprobando...</b>
-</div>
-
-<div class="line">
-<span>IA</span>
-<b id="publicAiStatus">Comprobando...</b>
-</div>
-
-</div>
-
-
-<!-- =====================================================
-     IA
-===================================================== -->
-
-<div class="card">
-
-<h2>🤖 Asistente IA</h2>
-
-<p class="muted">
-La respuesta viene del backend.
-La clave de OpenAI nunca está en esta página.
-</p>
-
-<div
-id="chat"
-class="chat"
-></div>
-
-<div style="display:flex;gap:8px">
-
-<input
-id="aiInput"
-style="margin:0"
-placeholder="Ej.: Tengo RD$200, ¿qué me recomiendas?"
->
-
-<button
-type="button"
-id="aiBtn"
-class="primary"
->
-Enviar
-</button>
-
-</div>
-
-<div
-style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px"
->
-
-<button
-type="button"
-class="soft quick"
-data-q="Quiero ver el menú"
->
-Ver menú
-</button>
-
-<button
-type="button"
-class="soft quick"
-data-q="Tengo RD$200, ¿qué me recomiendas?"
->
-Recomiéndame algo
-</button>
-
-<button
-type="button"
-class="soft quick"
-data-q="Quiero hacer un pedido"
->
-Hacer pedido
-</button>
-
-</div>
-
-</div>
-
-
-<!-- =====================================================
-     PANEL DEL NEGOCIO
-===================================================== -->
-
-<div class="card">
-
-<h2>📦 Panel del negocio</h2>
-
-<p class="muted">
-Los pedidos confirmados se guardan en el backend.
-</p>
-
-<div id="dashboard">
-<p class="muted">Cargando...</p>
-</div>
-
-</div>
-
-
-<!-- =====================================================
-     PANEL REPARTIDOR
-===================================================== -->
-
-<div class="card">
-
-<h2>🚴 Panel del repartidor</h2>
-
-<div id="driverDashboard">
-<p class="muted">Cargando...</p>
-</div>
-
-</div>
-
-
-<!-- =====================================================
-     PRODUCTOS
-===================================================== -->
-
-<div class="card">
-
-<h2>🛒 Haz tu pedido</h2>
-
-<div
-id="products"
-class="products"
-></div>
-
-</div>
-
-
-<!-- =====================================================
-     PEDIDO + ENTREGA
-===================================================== -->
-
-<div class="grid">
-
-
-<div
-class="card"
-id="pedidoCard"
->
-
-<h2>
-🧾 Tu pedido
-<span
-id="cartCount"
-class="badge"
->
-0
-</span>
-</h2>
-
-<div id="cart">
-<p class="muted">
-No has agregado productos.
-</p>
-</div>
-
-<div class="total">
-<span>Subtotal</span>
-<span id="subtotal">RD$0</span>
-</div>
-
-</div>
-
-
-<div class="card">
-
-<h2>📍 Datos de entrega</h2>
-
-<input
-id="customer"
-placeholder="Nombre del cliente"
->
-
-<input
-id="phone"
-type="tel"
-placeholder="WhatsApp del cliente"
->
-
-<select id="delivery">
-
-<option value="delivery">
-🚚 Delivery
-</option>
-
-<option value="pickup">
-🏪 Recoger en el negocio
-</option>
-
-</select>
-
-
-<div id="deliveryBox">
-
-<div class="location">
-
-<b>📍 Ubicación de entrega</b>
-
-<p class="muted">
-Usa GPS o escribe una dirección como respaldo.
-</p>
-
-<button
-type="button"
-id="locationBtn"
-class="primary"
->
-Compartir mi ubicación
-</button>
-
-<p
-id="locStatus"
-class="muted"
->
-Ubicación pendiente.
-</p>
-
-<label>
-Dirección
-</label>
-
-<input
-id="address"
-placeholder="Calle, número, sector, referencia"
->
-
-<button
-type="button"
-id="mapsBtn"
-class="soft"
->
-Abrir Google Maps
-</button>
-
-</div>
-
-<label>
-Instrucciones
-</label>
-
-<textarea
-id="notes"
-placeholder="Ej.: casa azul, segundo piso..."
-></textarea>
-
-</div>
-
-
-<button
-type="button"
-id="confirmBtn"
-class="green"
-style="width:100%"
->
-Confirmar pedido
-</button>
-
-<p
-id="orderStatus"
-class="muted"
-></p>
-
-</div>
-
-</div>
-
-
-<!-- =====================================================
-     RESULTADO
-===================================================== -->
-
-<div
-class="card hidden"
-id="result"
->
-
-<h2>✅ Pedido confirmado</h2>
-
-<div id="receipt"></div>
-
-<div class="actions">
-
-<button
-type="button"
-id="customerWhatsappBtn"
-class="whatsapp"
->
-📱 Enviar confirmación por WhatsApp
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-
-<!-- =====================================================
-     BARRA INFERIOR
-===================================================== -->
-
-<div class="orderbar">
-
-<div class="orderbar-inner">
-
-<div>
-<b>🛒 Pedido</b>
-
-<span id="barItems">
-0 productos ·
-</span>
-
-<strong id="barTotal">
-RD$0
-</strong>
-
-</div>
-
-<button
-type="button"
-id="viewOrderBtn"
-class="primary"
->
-Ver pedido
-</button>
-
-</div>
-
-</div>
-
-
-<script>
-
-'use strict';
-
-
-/* =====================================================
-   CONFIGURACIÓN
-===================================================== */
-
-const API =
-'https://conectard-ai-2.onrender.com';
-
-const BUSINESS_ID =
-'anamuya-demo';
-
-
-/* =====================================================
-   DATOS
-===================================================== */
-
-const productsData = [
-
-['Tostada',50],
-
-['Jugo natural',40],
-
-['Batida',80],
-
-['Queque',10]
-
-];
-
-
-let cart = {};
-
-let coords = null;
-
-let orders = [];
-
-let adminAuthenticated = false;
-
-let adminKey = '';
-
-let lastOrder = null;
-
-
-/* =====================================================
-   UTILIDADES
-===================================================== */
-
-const $ =
-id => document.getElementById(id);
-
-
-const money =
-n =>
-'RD$' +
-Number(n || 0)
-.toLocaleString('es-DO');
-
-
-function escapeHtml(v){
-
-return String(v ?? '')
-.replace(
-/[&<>"']/g,
-m => ({
-'&':'&amp;',
-'<':'&lt;',
-'>':'&gt;',
-'"':'&quot;',
-"'":'&#039;'
-}[m])
-);
-
-}
-
-
-function cleanWhatsappNumber(value){
-
-return String(value || '')
-.replace(/\D/g,'');
-
-}
-
-
-/* =====================================================
-   API NORMAL
-===================================================== */
-
-async function api(path,options={}){
-
-const headers = {
-
-'Content-Type':
-'application/json',
-
-'x-business-id':
-BUSINESS_ID,
-
-...(options.headers || {})
-
-};
-
-const r =
-await fetch(
-API + path,
-{
-...options,
-headers
-}
-);
-
-const data =
-await r.json()
-.catch(
-() => ({
-ok:false,
-message:'Respuesta no válida'
-})
-);
-
-if(!r.ok){
-
-throw new Error(
-data.message ||
-data.error ||
-'Error de conexión'
-);
-
-}
-
-return data;
-
-}
-
-
-/* =====================================================
-   LOGIN ADMIN
-===================================================== */
-
-$('adminLoginBtn').onclick =
-async () => {
-
-const key =
-$('adminKey')
-.value
-.trim();
-
-if(!key){
-
-$('adminLoginStatus')
-.textContent =
-'⚠️ Escribe la llave de administrador.';
-
-return;
-
-}
-
-
-$('adminLoginBtn').disabled = true;
-
-$('adminLoginStatus')
-.textContent =
-'🔐 Verificando llave...';
-
-
-try{
-
-const r =
-await fetch(
-API + '/api/admin/login',
-{
-method:'POST',
-
-headers:{
-'Content-Type':
-'application/json'
-},
-
-body:
-JSON.stringify({
-key:key
-})
-
-}
-);
-
-
-const data =
-await r.json();
-
-
-if(!r.ok || !data.ok){
-
-throw new Error(
-data.message ||
-'Llave incorrecta.'
-);
-
-}
-
-
-adminAuthenticated = true;
-
-adminKey = key;
-
-
-$('adminLogin')
-.classList
-.add('hidden');
-
-$('adminPanel')
-.classList
-.remove('hidden');
-
-
-$('adminLoginStatus')
-.textContent =
-'✅ Administrador autenticado.';
-
-
-await loadAdminData();
-
-
-}catch(e){
-
-adminAuthenticated = false;
-
-adminKey = '';
-
-$('adminLoginStatus')
-.textContent =
-'⚠️ ' + e.message;
-
-
-}finally{
-
-$('adminLoginBtn').disabled = false;
-
-}
-
-};
-
-
-/* =====================================================
-   CARGAR ADMIN
-===================================================== */
-
-async function loadAdminData(){
-
-if(!adminAuthenticated){
-
-return;
-
-}
-
-
-try{
-
-const r =
-await fetch(
-API + '/api/admin/businesses',
-{
-headers:{
-'x-admin-key':
-adminKey
-}
-}
-);
-
-
-const data =
-await r.json();
-
-
-if(!r.ok){
-
-throw new Error(
-data.message ||
-'No se pudo cargar administración.'
-);
-
-}
-
-
-const business =
-(data.businesses || [])
-.find(
-b =>
-b.id === BUSINESS_ID
-);
-
-
-if(business){
-
-$('subStatus')
-.textContent =
-business.active
-? '✅ Activo'
-: '⛔ Suspendido';
-
-
-$('publicSubStatus')
-.textContent =
-business.active
-? '✅ Backend activo'
-: '⛔ Negocio suspendido';
-
-
-if(
-business.subscriptionExpiresAt
-){
-
-const date =
-new Date(
-business.subscriptionExpiresAt
-);
-
-
-const local =
-new Date(
-date.getTime() -
-date.getTimezoneOffset()*60000
-)
-.toISOString()
-.slice(0,16);
-
-
-$('subscriptionDate')
-.value =
-local;
-
-}
-
-}
-
-
-$('adminBackendStatus')
-.textContent =
-'✅ Conectado';
-
-
-try{
-
-const h =
-await fetch(
-API + '/health'
-)
-.then(
-r => r.json()
-);
-
-
-$('adminAiStatus')
-.textContent =
-h.aiConfigured
-? '✅ IA conectada'
-: '⚠️ IA no configurada';
-
-
-$('publicAiStatus')
-.textContent =
-h.aiConfigured
-? '✅ IA conectada'
-: '⚠️ IA no configurada';
-
-
-}catch{
-
-$('adminAiStatus')
-.textContent =
-'⚠️ No disponible';
-
-}
-
-
-}catch(e){
-
-$('adminBackendStatus')
-.textContent =
-'❌ ' + e.message;
-
-}
-
-}
-
-
-/* =====================================================
-   ACTIVAR / ACTUALIZAR SUSCRIPCIÓN
-===================================================== */
-
-$('activateBusinessBtn').onclick =
-async () => {
-
-if(!adminAuthenticated){
-
-alert(
-'Primero entra como administrador.'
-);
-
-return;
-
-}
-
-
-const value =
-$('subscriptionDate')
-.value;
-
-
-if(!value){
-
-alert(
-'Selecciona una fecha de vencimiento.'
-);
-
-return;
-
-}
-
-
-const expiresAt =
-new Date(value)
-.toISOString();
-
-
-$('activateBusinessBtn')
-.disabled = true;
-
-
-try{
-
-const r =
-await fetch(
-API +
-'/api/admin/businesses/' +
-encodeURIComponent(BUSINESS_ID) +
-'/subscription',
-{
-method:'POST',
-
-headers:{
-'Content-Type':
-'application/json',
-
-'x-admin-key':
-adminKey
-},
-
-body:
-JSON.stringify({
-active:true,
-subscriptionExpiresAt:
-expiresAt
-})
-}
-);
-
-
-const data =
-await r.json();
-
-
-if(!r.ok){
-
-throw new Error(
-data.message ||
-'No se pudo actualizar.'
-);
-
-}
-
-
-$('subscriptionStatus')
-.textContent =
-'✅ Suscripción actualizada correctamente.';
-
-
-await loadAdminData();
-
-
-}catch(e){
-
-$('subscriptionStatus')
-.textContent =
-'⚠️ ' + e.message;
-
-
-}finally{
-
-$('activateBusinessBtn')
-.disabled = false;
-
-}
-
-};
-
-
-/* =====================================================
-   SUSPENDER NEGOCIO
-===================================================== */
-
-$('suspendBusinessBtn').onclick =
-async () => {
-
-if(!adminAuthenticated){
-
-alert(
-'Primero entra como administrador.'
-);
-
-return;
-
-}
-
-
-if(
-!confirm(
-'¿Seguro que quieres suspender este negocio?'
-)
-){
-
-return;
-
-}
-
-
-$('suspendBusinessBtn')
-.disabled = true;
-
-
-try{
-
-const r =
-await fetch(
-API +
-'/api/admin/businesses/' +
-encodeURIComponent(BUSINESS_ID) +
-'/subscription',
-{
-method:'POST',
-
-headers:{
-'Content-Type':
-'application/json',
-
-'x-admin-key':
-adminKey
-},
-
-body:
-JSON.stringify({
-active:false
-})
-}
-);
-
-
-const data =
-await r.json();
-
-
-if(!r.ok){
-
-throw new Error(
-data.message ||
-'No se pudo suspender.'
-);
-
-}
-
-
-$('subscriptionStatus')
-.textContent =
-'⛔ Negocio suspendido.';
-
-
-await loadAdminData();
-
-
-}catch(e){
-
-$('subscriptionStatus')
-.textContent =
-'⚠️ ' + e.message;
-
-}finally{
-
-$('suspendBusinessBtn')
-.disabled = false;
-
-}
-
-};
-
-
-/* =====================================================
-   WHATSAPP REPARTIDOR
-===================================================== */
-
-const savedDriver =
-localStorage.getItem(
-'conectard_driver_whatsapp'
-);
-
-
-if(savedDriver){
-
-$('driverWhatsapp')
-.value =
-savedDriver;
-
-}
-
-
-$('saveDriverBtn').onclick =
-() => {
-
-const number =
-cleanWhatsappNumber(
-$('driverWhatsapp').value
-);
-
-
-if(!number){
-
-$('driverSaveStatus')
-.textContent =
-'⚠️ Escribe un número de WhatsApp válido.';
-
-return;
-
-}
-
-
-localStorage.setItem(
-'conectard_driver_whatsapp',
-number
-);
-
-
-$('driverSaveStatus')
-.textContent =
-'✅ WhatsApp del repartidor guardado en este dispositivo.';
-
-};
-
-
-/* =====================================================
-   CERRAR SESIÓN ADMIN
-===================================================== */
-
-$('logoutAdminBtn').onclick =
-() => {
-
-adminAuthenticated = false;
-
-adminKey = '';
-
-$('adminPanel')
-.classList
-.add('hidden');
-
-$('adminLogin')
-.classList
-.remove('hidden');
-
-$('adminKey')
-.value = '';
-
-$('adminLoginStatus')
-.textContent =
-'';
-
-};
-
-
-/* =====================================================
-   PRODUCTOS
-===================================================== */
-
-function renderProducts(){
-
-$('products').innerHTML =
-productsData
-.map(
-(p,i) => `
-
-<div class="product">
-
-<b>
-${escapeHtml(p[0])}
-</b>
-
-<div class="price">
-${money(p[1])}
-</div>
-
-<button
-type="button"
-class="soft add"
-data-i="${i}"
->
-Agregar al carrito
-</button>
-
-</div>
-
-`
-)
-.join('');
-
-
-document
-.querySelectorAll('.add')
-.forEach(
-b =>
-b.onclick =
-() =>
-add(
-Number(b.dataset.i)
-)
-);
-
-}
-
-
-/* =====================================================
-   CARRITO
-===================================================== */
-
-function add(i){
-
-const name =
-productsData[i][0];
-
-cart[name] =
-(cart[name] || 0) + 1;
-
-renderCart();
-
-}
-
-
-function renderCart(){
-
-const ks =
-Object.keys(cart);
-
-
-$('cart').innerHTML =
-ks.length
-
-? ks
-.map(
-k => {
-
-const p =
-productsData
-.find(
-x =>
-x[0] === k
-);
-
-return `
-
-<div class="line">
-
-<span>
-${cart[k]} ×
-${escapeHtml(k)}
-</span>
-
-<b>
-${money(
-cart[k] * p[1]
-)}
-</b>
-
-</div>
-
-`;
-
-}
-)
-.join('')
-
-:
-
-'<p class="muted">No has agregado productos.</p>';
-
-
-const subtotal =
-ks.reduce(
-(s,k) =>
-s +
-cart[k] *
-productsData.find(
-x => x[0] === k
-)[1],
-0
-);
-
-
-const count =
-ks.reduce(
-(s,k) =>
-s + cart[k],
-0
-);
-
-
-$('subtotal')
-.textContent =
-money(subtotal);
-
-
-$('cartCount')
-.textContent =
-count;
-
-
-$('barItems')
-.textContent =
-count +
-' producto' +
-(count === 1 ? '' : 's') +
-' · ';
-
-
-$('barTotal')
-.textContent =
-money(subtotal);
-
-}
-
-
-/* =====================================================
-   DELIVERY
-===================================================== */
-
-function deliveryChanged(){
-
-$('deliveryBox')
-.classList
-.toggle(
-'hidden',
-$('delivery').value !== 'delivery'
-);
-
-}
-
-
-$('delivery').onchange =
-deliveryChanged;
-
-
-/* =====================================================
-   GPS
-===================================================== */
-
-$('locationBtn').onclick =
-() => {
-
-$('locStatus')
-.textContent =
-'📍 Solicitando ubicación...';
-
-
-if(!window.isSecureContext){
-
-$('locStatus')
-.textContent =
-'Abre la página desde HTTPS.';
-
-return;
-
-}
-
-
-if(!navigator.geolocation){
-
-$('locStatus')
-.textContent =
-'GPS no disponible.';
-
-return;
-
-}
-
-
-navigator.geolocation.getCurrentPosition(
-
-pos => {
-
-coords = {
-
-lat:
-pos.coords.latitude,
-
-lng:
-pos.coords.longitude,
-
-accuracy:
-Math.round(
-pos.coords.accuracy || 0
-)
-
-};
-
-
-$('locStatus')
-.textContent =
-'✅ Ubicación compartida. Precisión aproximada: ' +
-coords.accuracy +
-' m';
-
-},
-
-err => {
-
-$('locStatus')
-.textContent =
-err.code === 1
-?
-'Permiso rechazado. Permite la ubicación.'
-:
-'No se pudo obtener GPS. Puedes usar la dirección.';
-
-},
-
-{
-enableHighAccuracy:true,
-timeout:15000,
-maximumAge:0
-}
-
-);
-
-};
-
-
-/* =====================================================
-   GOOGLE MAPS
-===================================================== */
-
-$('mapsBtn').onclick =
-() => {
-
-const q =
-coords
-?
-`${coords.lat},${coords.lng}`
-:
-$('address')
-.value
-.trim();
-
-
 const url =
 q
 ?
 'https://www.google.com/maps/search/?api=1&query=' +
 encodeURIComponent(q)
 :
-'https://www.google
+'https://www.google.com/maps/';
+
+window.open(url,'_blank');
+};
+
+
+/* =====================================================
+   CHAT IA
+===================================================== */
+
+function addChat(role,text){
+const d=document.createElement('div');
+d.className='msg '+role;
+d.textContent=String(text ?? '');
+$('chat').appendChild(d);
+$('chat').scrollTop=$('chat').scrollHeight;
+}
+
+
+async function askAI(){
+
+const input=$('aiInput');
+const q=input.value.trim();
+
+if(!q)return;
+
+addChat('user',q);
+
+input.value='';
+
+$('aiBtn').disabled=true;
+$('aiBtn').textContent='...';
+
+try{
+
+const d=await api('/api/ai',{
+method:'POST',
+body:JSON.stringify({
+message:q
+})
+});
+
+addChat(
+'assistant',
+d.reply || 'No pude generar una respuesta.'
+);
+
+}catch(e){
+
+addChat(
+'assistant',
+'⚠️ '+e.message
+);
+
+}finally{
+
+$('aiBtn').disabled=false;
+$('aiBtn').textContent='Enviar';
+
+}
+
+}
+
+
+$('aiBtn').onclick=askAI;
+
+$('aiInput').onkeydown=e=>{
+
+if(e.key==='Enter'){
+
+e.preventDefault();
+
+askAI();
+
+}
+
+};
+
+
+document
+.querySelectorAll('.quick')
+.forEach(
+b =>
+b.onclick=()=>{
+
+$('aiInput').value=b.dataset.q;
+
+askAI();
+
+}
+);
+
+
+/* =====================================================
+   PEDIDO
+===================================================== */
+
+async function confirmOrder(){
+
+const ks=Object.keys(cart);
+
+const name=$('customer').value.trim();
+
+const phone=$('phone').value.trim();
+
+const delivery=$('delivery').value;
+
+const address=$('address').value.trim();
+
+if(!ks.length){
+
+alert('Agrega al menos un producto.');
+
+return;
+
+}
+
+if(!name || !phone){
+
+alert('Completa nombre y WhatsApp.');
+
+return;
+
+}
+
+if(
+delivery==='delivery' &&
+!coords &&
+!address
+){
+
+alert(
+'Comparte GPS o escribe una dirección.'
+);
+
+return;
+
+}
+
+
+const items=ks.map(k=>({
+
+name:k,
+
+quantity:cart[k],
+
+unitPrice:
+productsData.find(
+x=>x[0]===k
+)[1]
+
+}));
+
+
+const subtotal=items.reduce(
+
+(s,x)=>
+s+x.quantity*x.unitPrice,
+
+0
+
+);
+
+
+const fee=
+delivery==='delivery'
+?50
+:0;
+
+
+const total=subtotal+fee;
+
+
+const location=
+coords
+?{
+lat:coords.lat,
+lng:coords.lng,
+accuracy:coords.accuracy
+}
+:null;
+
+
+$('confirmBtn').disabled=true;
+
+$('orderStatus').textContent=
+'Enviando pedido...';
+
+
+try{
+
+const d=await api(
+'/api/orders',
+{
+method:'POST',
+
+body:JSON.stringify({
+
+customer:name,
+
+phone:phone,
+
+deliveryType:delivery,
+
+address:address,
+
+location:location,
+
+items:items,
+
+notes:
+$('notes').value.trim(),
+
+total:total
+
+})
+
+}
+);
+
+
+const o=d.order;
+
+
+$('receipt').innerHTML=`
+
+<div class="line">
+<span>Pedido</span>
+<b>#${escapeHtml(o.id.slice(0,8))}</b>
+</div>
+
+<div class="line">
+<span>Cliente</span>
+<b>${escapeHtml(name)}</b>
+</div>
+
+<div class="line">
+<span>WhatsApp</span>
+<b>${escapeHtml(phone)}</b>
+</div>
+
+<div class="line">
+<span>Productos</span>
+<b>
+${escapeHtml(
+items
+.map(
+x=>x.quantity+' × '+x.name
+)
+.join(', ')
+)}
+</b>
+</div>
+
+<div class="line">
+<span>Delivery</span>
+<b>
+${
+delivery==='delivery'
+?money(fee)
+:'Recogida'
+}
+</b>
+</div>
+
+<div class="line">
+<span>Total</span>
+<b>${money(total)}</b>
+</div>
+
+`;
+
+
+$('result')
+.classList
+.remove('hidden');
+
+
+lastOrder={
+id:o.id,
+customer:name,
+phone:phone,
+items:items,
+total:total
+};
+
+
+cart={};
+
+coords=null;
+
+renderCart();
+
+
+$('orderStatus').textContent=
+'✅ Pedido enviado al negocio.';
+
+
+await loadOrders();
+
+
+$('result')
+.scrollIntoView({
+behavior:'smooth'
+});
+
+
+}catch(e){
+
+$('orderStatus').textContent=
+'⚠️ '+e.message;
+
+}finally{
+
+$('confirmBtn').disabled=false;
+
+}
+
+}
+
+
+$('confirmBtn').onclick=confirmOrder;
+
+
+$('viewOrderBtn').onclick=()=>
+
+$('pedidoCard')
+.scrollIntoView({
+behavior:'smooth'
+});
+
+
+/* =====================================================
+   GOOGLE MAPS DE PEDIDOS
+===================================================== */
+
+function mapsFor(o){
+
+if(
+o.location &&
+o.location.lat
+){
+
+return
+'https://www.google.com/maps/dir/?api=1&destination='+
+o.location.lat+
+','+
+o.location.lng;
+
+}
+
+if(o.address){
+
+return
+'https://www.google.com/maps/search/?api=1&query='+
+encodeURIComponent(o.address);
+
+}
+
+return
+'https://www.google.com/maps/';
+
+}
+
+
+function statusLabel(s){
+
+return({
+
+new:'Nuevo',
+
+preparing:'Preparando',
+
+on_the_way:'En camino',
+
+delivered:'Entregado',
+
+cancelled:'Cancelado'
+
+})[s] || s;
+
+}
+
+
+async function setStatus(id,status){
+
+try{
+
+await api(
+'/api/orders/'+id+'/status',
+{
+method:'PATCH',
+
+body:JSON.stringify({
+status:status
+})
+
+}
+);
+
+await loadOrders();
+
+}catch(e){
+
+alert(e.message);
+
+}
+
+}
+
+
+/* =====================================================
+   PANEL DEL NEGOCIO
+===================================================== */
+
+function renderDash(){
+
+if(!orders.length){
+
+$('dashboard').innerHTML=
+'<p class="muted">Todavía no hay pedidos.</p>';
+
+return;
+
+}
+
+
+$('dashboard').innerHTML=
+
+orders.map(o=>`
+
+<div class="order">
+
+<div class="line">
+
+<b>
+Pedido #${escapeHtml(o.id.slice(0,8))}
+·
+${escapeHtml(o.customer)}
+</b>
+
+<select
+data-id="${escapeHtml(o.id)}"
+class="status"
+>
+
+${
+[
+'new',
+'preparing',
+'on_the_way',
+'delivered',
+'cancelled'
+]
+.map(s=>`
+
+<option
+value="${s}"
+${s===o.status?'selected':''}
+>
+${statusLabel(s)}
+</option>
+
+`).join('')
+}
+
+</select>
+
+</div>
+
+
+<p class="muted">
+
+${escapeHtml(o.phone || '')}
+
+<br>
+
+${
+escapeHtml(
+(o.items || [])
+.map(
+x=>x.quantity+' × '+x.name
+)
+.join(', ')
+)
+}
+
+<br>
+
+${
+o.location
+?
+escapeHtml(
+o.location.lat+
+', '+
+o.location.lng
+)
+:
+escapeHtml(
+o.address ||
+'Sin ubicación'
+)
+}
+
+</p>
+
+
+<b>${money(o.total)}</b>
+
+${
+o.location || o.address
+?
+`
+
+<button
+type="button"
+class="soft"
+onclick="window.open('${mapsFor(o)}','_blank')"
+>
+🗺️ Ubicación
+</button>
+
+`
+:
+''
+}
+
+</div>
+
+`).join('');
+
+
+document
+.querySelectorAll('.status')
+.forEach(
+
+s=>
+
+s.onchange=()=>
+
+setStatus(
+s.dataset.id,
+s.value
+)
+
+);
+
+}
+
+
+/* =====================================================
+   PANEL REPARTIDOR
+===================================================== */
+
+function renderDriver(){
+
+const active=
+orders.filter(
+o=>
+o.status==='preparing' ||
+o.status==='on_the_way'
+);
+
+
+if(!active.length){
+
+$('driverDashboard').innerHTML=
+'<p class="muted">No hay pedidos para entregar ahora.</p>';
+
+return;
+
+}
+
+
+$('driverDashboard').innerHTML=
+
+active.map(o=>`
+
+<div class="order">
+
+<b>
+Pedido #${escapeHtml(o.id.slice(0,8))}
+·
+${escapeHtml(o.customer)}
+</b>
+
+<p>
+
+${escapeHtml(
+o.address ||
+(
+o.location
+?
+o.location.lat+', '+o.location.lng
+:
+'Sin ubicación'
+)
+)}
+
+</p>
+
+<p>${money(o.total)}</p>
+
+
+<button
+type="button"
+class="primary nav"
+data-id="${escapeHtml(o.id)}"
+>
+🗺️ Navegar
+</button>
+
+
+<button
+type="button"
+class="green done"
+data-id="${escapeHtml(o.id)}"
+>
+✅ Entregado
+</button>
+
+</div>
+
+`).join('');
+
+
+document
+.querySelectorAll('.nav')
+.forEach(
+
+b=>{
+
+b.onclick=()=>{
+
+const o=
+orders.find(
+x=>x.id===b.dataset.id
+);
+
+if(o){
+
+window.open(
+mapsFor(o),
+'_blank'
+);
+
+}
+
+};
+
+}
+);
+
+
+document
+.querySelectorAll('.done')
+.forEach(
+
+b=>
+
+b.onclick=()=>
+
+setStatus(
+b.dataset.id,
+'delivered'
+)
+
+);
+
+}
+
+
+/* =====================================================
+   CARGAR PEDIDOS
+===================================================== */
+
+async function loadOrders(){
+
+try{
+
+const d=
+await api('/api/orders');
+
+orders=
+Array.isArray(d.orders)
+?
+d.orders
+:
+[];
+
+renderDash();
+
+renderDriver();
+
+}catch(e){
+
+$('dashboard').innerHTML=
+'<p class="error">'+
+escapeHtml(e.message)+
+'</p>';
+
+$('driverDashboard').innerHTML=
+'<p class="error">'+
+escapeHtml(e.message)+
+'</p>';
+
+}
+
+}
+
+
+/* =====================================================
+   WHATSAPP CLIENTE
+===================================================== */
+
+$('customerWhatsappBtn').onclick=()=>{
+
+if(!lastOrder){
+
+alert('No hay un pedido confirmado.');
+
+return;
+
+}
+
+
+const message=
+'Hola, mi pedido en ConectaRD AI es el #'+
+String(lastOrder.id).slice(0,8)+
+'. Total: '+
+money(lastOrder.total)+
+'.';
+
+
+const number=
+cleanWhatsappNumber(
+lastOrder.phone
+);
+
+
+if(!number){
+
+alert(
+'El número de WhatsApp no es válido.'
+);
+
+return;
+
+}
+
+
+window.open(
+'https://wa.me/'+
+number+
+'?text='+
+encodeURIComponent(message),
+'_blank'
+);
+
+};
+
+
+/* =====================================================
+   INICIO
+===================================================== */
+
+async function boot(){
+
+renderProducts();
+
+renderCart();
+
+
+addChat(
+'assistant',
+'¡Hola! Soy la IA de ConectaRD. Puedo ayudarte con el menú, precios y recomendaciones.'
+);
+
+
+try{
+
+const h=
+await fetch(
+API+'/health'
+)
+.then(
+r=>r.json()
+);
+
+
+$('publicAiStatus')
+.textContent=
+h.aiConfigured
+?
+'✅ IA conectada'
+:
+'⚠️ Falta configurar IA';
+
+
+$('publicSubStatus')
+.textContent=
+'✅ Backend activo';
+
+
+}catch(e){
+
+$('publicAiStatus')
+.textContent=
+'❌ Backend sin conexión';
+
+$('publicSubStatus')
+.textContent=
+'⚠️ No disponible';
+
+}
+
+
+await loadOrders();
+
+}
+
+
+boot();
+
+</script>
+
+</body>
+
+</html>
