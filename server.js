@@ -2,6 +2,14 @@ import express from "express";
 import cors from "cors";
 import crypto from "crypto";
 import OpenAI from "openai";
+import pg from "pg";
+const { Pool } = pg;
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+
 
 console.log("INICIANDO CONECTARD AI...");
 
