@@ -993,6 +993,9 @@ app.patch(
       ];
 
       const newStatus = req.body?.status;
+      const deliveryCode = String(
+        req.body?.deliveryCode || ""
+      ).trim();
 
       if (!allowedStatuses.includes(newStatus)) {
         return res.status(400).json({
@@ -1002,21 +1005,18 @@ app.patch(
       }
 
       /*
-       * CÓDIGO DE ENTREGA
-       * Cuando el repartidor marque el pedido como entregado,
-       * debe proporcionar el código de 4 dígitos del cliente.
+       * VERIFICAR CÓDIGO DE ENTREGA
+       * Solo se exige cuando el repartidor
+       * intenta marcar el pedido como entregado.
        */
 
       if (newStatus === "delivered") {
-        const deliveryCode = String(
-          req.body?.deliveryCode || ""
-        ).trim();
 
         if (!/^\d{4}$/.test(deliveryCode)) {
           return res.status(400).json({
             ok: false,
             message:
-              "Debes introducir el código de entrega de 4 dígitos."
+              "Debes introducir un código de entrega válido de 4 dígitos."
           });
         }
 
@@ -1035,7 +1035,7 @@ app.patch(
           ]
         );
 
-        if (!codeResult.rows.length) {
+        if (codeResult.rowCount === 0) {
           return res.status(400).json({
             ok: false,
             message:
@@ -1061,17 +1061,16 @@ app.patch(
         ]
       );
 
-      if (!result.rows.length) {
+      if (result.rowCount === 0) {
         return res.status(404).json({
           ok: false,
-          message:
-            "Pedido no encontrado."
+          message: "Pedido no encontrado."
         });
       }
 
       const row = result.rows[0];
 
-      res.json({
+      return res.json({
         ok: true,
         order: {
           id: row.id,
@@ -1100,7 +1099,7 @@ app.patch(
         error
       );
 
-      res.status(500).json({
+      return res.status(500).json({
         ok: false,
         message:
           "Error cambiando estado."
