@@ -408,6 +408,66 @@ app.get(
     }
   }
 );
+/* =========================
+   AGREGAR PRODUCTO
+========================= */
+
+app.post("/api/products", requireActiveBusiness, (req, res) => {
+  try {
+    const {
+      name,
+      description,
+      price,
+      category,
+      image,
+      active
+    } = req.body || {};
+
+    if (!name || String(name).trim() === "") {
+      return res.status(400).json({
+        ok: false,
+        message: "El nombre del producto es obligatorio."
+      });
+    }
+
+    const numericPrice = Number(price);
+
+    if (!Number.isFinite(numericPrice) || numericPrice < 0) {
+      return res.status(400).json({
+        ok: false,
+        message: "El precio del producto no es válido."
+      });
+    }
+
+    const product = {
+      id: crypto.randomUUID(),
+      businessId: req.business.id,
+      name: String(name).trim(),
+      description: String(description || "").trim(),
+      price: numericPrice,
+      category: String(category || "").trim(),
+      image: String(image || "").trim(),
+      active: active !== false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    products.set(product.id, product);
+
+    return res.status(201).json({
+      ok: true,
+      product
+    });
+
+  } catch (error) {
+    console.error("Error al crear producto:", error);
+
+    return res.status(500).json({
+      ok: false,
+      message: "No se pudo crear el producto."
+    });
+  }
+});
 
 /* =========================================================
    IA
