@@ -992,17 +992,56 @@ app.patch(
         "cancelled"
       ];
 
-      const newStatus =
-        req.body?.status;
+      const newStatus = req.body?.status;
 
-      if (
-        !allowedStatuses.includes(newStatus)
-      ) {
+      if (!allowedStatuses.includes(newStatus)) {
         return res.status(400).json({
           ok: false,
-          message:
-            "Estado no válido."
+          message: "Estado no válido."
         });
+      }
+
+      /*
+       * CÓDIGO DE ENTREGA
+       * Cuando el repartidor marque el pedido como entregado,
+       * debe proporcionar el código de 4 dígitos del cliente.
+       */
+
+      if (newStatus === "delivered") {
+        const deliveryCode = String(
+          req.body?.deliveryCode || ""
+        ).trim();
+
+        if (!/^\d{4}$/.test(deliveryCode)) {
+          return res.status(400).json({
+            ok: false,
+            message:
+              "Debes introducir el código de entrega de 4 dígitos."
+          });
+        }
+
+        const codeResult = await pool.query(
+          `
+          SELECT id
+          FROM orders
+          WHERE id = $1
+            AND business_id = $2
+            AND delivery_code = $3
+          `,
+          [
+            req.params.id,
+            req.business.id,
+            deliveryCode
+          ]
+        );
+
+        if (!codeResult.rows.length) {
+          return res.status(400).json({
+            ok: false,
+            message:
+              "Código de entrega incorrecto."
+          });
+        }
       }
 
       const result = await pool.query(
@@ -1047,6 +1086,7 @@ app.patch(
           total: Number(row.total),
           status: row.status,
           driverId: row.driver_id,
+          deliveryCode: row.delivery_code,
           createdAt:
             new Date(row.created_at).toISOString(),
           updatedAt:
@@ -1055,7 +1095,10 @@ app.patch(
       });
 
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Error cambiando estado:",
+        error
+      );
 
       res.status(500).json({
         ok: false,
@@ -1065,62 +1108,6 @@ app.patch(
     }
   }
 );
-
-/* =========================================================
-   ADMIN — NEGOCIOS
-========================================================= */
-
-app.get(
-  "/api/admin/businesses",
-  requireAdmin,
-  async (_req, res) => {
-    try {
-      const result = await pool.query(
-        `
-        SELECT *
-        FROM businesses
-        ORDER BY created_at DESC
-        `
-      );
-
-      const businesses =
-        result.rows.map(row => {
-          const business = {
-            id: row.id,
-            name: row.name,
-            active: row.active,
-            whatsapp: row.whatsapp || "",
-            phone: row.phone || "",
-            subscriptionExpiresAt:
-              new Date(
-                row.subscription_expires_at
-              ).toISOString()
-          };
-
-          return {
-            ...business,
-            active:
-              businessIsActive(business)
-          };
-        });
-
-      res.json({
-        ok: true,
-        businesses
-      });
-
-    } catch (error) {
-      console.error(error);
-
-      res.status(500).json({
-        ok: false,
-        message:
-          "Error obteniendo negocios."
-      });
-    }
-  }
-);
-
 /* =========================================================
    ADMIN — CREAR NEGOCIO
 ========================================================= */
