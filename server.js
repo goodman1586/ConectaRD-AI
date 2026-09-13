@@ -3,23 +3,32 @@ import cors from "cors";
 import crypto from "crypto";
 import OpenAI from "openai";
 
+console.log("INICIANDO CONECTARD AI...");
+
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "x-business-id", "x-admin-key"]
+}));
+
+app.use(express.json({ limit: "1mb" }));
 
 const PORT = process.env.PORT || 10000;
 
 const ADMIN_KEY = process.env.ADMIN_KEY || "";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5";
 
 const openai = OPENAI_API_KEY
   ? new OpenAI({ apiKey: OPENAI_API_KEY })
   : null;
 
-/* =========================
+
+/* =========================================================
    NEGOCIOS
-========================= */
+========================================================= */
 
 const businesses = new Map([
   [
@@ -30,46 +39,103 @@ const businesses = new Map([
       active: true,
       whatsapp: "",
       phone: "",
-      subscriptionExpiresAt: "2099-12-31T23:59:59.000Z"
+      address: "Higüey, República Dominicana",
+      subscriptionExpiresAt: "2099-12-31T23:59:59.000Z",
+      createdAt: new Date().toISOString()
     }
   ]
 ]);
 
-/* =========================
-   REPARTIDORES
-========================= */
 
-const drivers = new Map();
+/* =========================================================
+   PRODUCTOS
+========================================================= */
 
-/* =========================
+const products = new Map([
+  [
+    "anamuya-demo",
+    [
+      {
+        id: "p1",
+        name: "Tostada",
+        price: 50,
+        available: true
+      },
+      {
+        id: "p2",
+        name: "Jugo natural",
+        price: 40,
+        available: true
+      },
+      {
+        id: "p3",
+        name: "Batida",
+        price: 80,
+        available: true
+      },
+      {
+        id: "p4",
+        name: "Queque",
+        price: 10,
+        available: true
+      }
+    ]
+  ]
+]);
+
+
+/* =========================================================
    PEDIDOS
-========================= */
+========================================================= */
 
 const orders = new Map();
 
-/* =========================
-   FUNCIONES
-========================= */
+
+/* =========================================================
+   REPARTIDORES
+========================================================= */
+
+const drivers = new Map();
+
+
+/* =========================================================
+   FUNCIONES GENERALES
+========================================================= */
 
 function businessIsActive(business) {
+  if (!business) return false;
+
   return (
-    !!business &&
     business.active === true &&
-    new Date(business.subscriptionExpiresAt) > new Date()
+    new Date(business.subscriptionExpiresAt).getTime() > Date.now()
   );
 }
 
-/* =========================
-   NEGOCIO ACTIVO
-========================= */
 
-function requireActiveBusiness(req, res, next) {
+function getBusinessFromRequest(req) {
   const id =
     req.header("x-business-id") ||
     req.query.businessId ||
     req.body?.businessId;
 
-  const business = businesses.get(id);
+  return businesses.get(id);
+}
+
+
+/* =========================================================
+   NEGOCIO ACTIVO
+========================================================= */
+
+function requireActiveBusiness(req, res, next) {
+  const business = getBusinessFromRequest(req);
+
+  if (!business) {
+    return res.status(404).json({
+      ok: false,
+      code: "BUSINESS_NOT_FOUND",
+      message: "Negocio no encontrado."
+    });
+  }
 
   if (!businessIsActive(business)) {
     return res.status(402).json({
@@ -80,12 +146,14 @@ function requireActiveBusiness(req, res, next) {
   }
 
   req.business = business;
+
   next();
 }
 
-/* =========================
+
+/* =========================================================
    ADMINISTRADOR
-========================= */
+========================================================= */
 
 function requireAdmin(req, res, next) {
   if (!ADMIN_KEY) {
@@ -109,80 +177,177 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-/* =========================
+
+/* =========================================================
    HEALTH
-========================= */
+========================================================= */
 
 app.get("/health", (_req, res) => {
   res.json({
     ok: true,
     service: "ConectaRD AI",
-    aiConfigured: !!OPENAI_API_KEY,
-    adminConfigured: !!ADMIN_KEY
+    version: "7.2",
+    aiConfigured: Boolean(OPENAI_API_KEY),
+    adminConfigured: Boolean(ADMIN_KEY),
+    businesses: businesses.size,
+    time: new Date().toISOString()
   });
 });
 
-/* =========================
-   IA
-========================= */
 
-app.post("/api/ai", requireActiveBusiness, async (req, res) => {
-  try {
-    const message = String(
-      req.body?.message || ""
-    ).trim();
+/* =========================================================
+   RUTA PRINCIPAL
+========================================================= */
 
-    if (!message) {
-      return res.status(400).json({
-        ok: false,
-        message: "El mensaje es obligatorio."
-      });
-    }
-
-    if (!openai) {
-      return res.status(503).json({
-        ok: false,
-        message: "La IA no está configurada."
-      });
-    }
-
-    const response = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "Eres el asistente de ConectaRD AI. Ayuda al cliente de forma clara, amable y breve con productos, precios, pedidos y delivery."
-        },
-        {
-          role: "user",
-          content: message
-        }
-      ]
-    });
-
-    const reply =
-      response.choices?.[0]?.message?.content ||
-      "No pude generar una respuesta.";
-
-    return res.json({
-      ok: true,
-      reply
-    });
-
-  } catch (error) {
-    console.error("Error IA:", error);
-
-    return res.status(500).json({
-      ok: false,
-      message: "Error al consultar la IA."
-    });
-  }
+app.get("/", (_req, res) => {
+  res.json({
+    ok: true,
+    service: "ConectaRD AI",
+    message: "Backend funcionando correctamente."
+  });
 });
 
-/* =========================
+
+/* =========================================================
+   NEGOCIO PÚBLICO
+========================================================= */
+
+app.get("/api/business/:businessId", (req, res) => {
+  const business = businesses.get(req.params.businessId);
+
+  if (!business) {
+    return res.status(404).json({
+      ok: false,
+      code: "BUSINESS_NOT_FOUND",
+      message: "Negocio no encontrado."
+    });
+  }
+
+  res.json({
+    ok: true,
+    business: {
+      id: business.id,
+      name: business.name,
+      active: businessIsActive(business),
+      whatsapp: business.whatsapp,
+      phone: business.phone,
+      address: business.address
+    }
+  });
+});
+
+
+/* =========================================================
+   PRODUCTOS PÚBLICOS
+========================================================= */
+
+app.get(
+  "/api/products",
+  requireActiveBusiness,
+  (req, res) => {
+
+    res.json({
+      ok: true,
+      business: req.business,
+      products: products.get(req.business.id) || []
+    });
+  }
+);
+
+
+/* =========================================================
+   IA
+========================================================= */
+
+app.post(
+  "/api/ai",
+  requireActiveBusiness,
+  async (req, res) => {
+
+    try {
+
+      const message =
+        String(req.body?.message || "").trim();
+
+      if (!message) {
+        return res.status(400).json({
+          ok: false,
+          message: "El mensaje es obligatorio."
+        });
+      }
+
+      if (!openai) {
+        return res.status(503).json({
+          ok: false,
+          message:
+            "OPENAI_API_KEY no está configurada en Render."
+        });
+      }
+
+      const catalog =
+        products.get(req.business.id) || [];
+
+      const catalogText =
+        catalog
+          .filter(product => product.available)
+          .map(
+            product =>
+              `${product.name}: RD$${product.price}`
+          )
+          .join(", ");
+
+      const response =
+        await openai.responses.create({
+
+          model: OPENAI_MODEL,
+
+          instructions:
+            `Eres ConectaRD AI, el asistente virtual del negocio "${req.business.name}".
+
+Ayuda al cliente con:
+- productos
+- precios
+- recomendaciones
+- pedidos
+- delivery
+- recogida en el negocio
+
+Sé amable, claro y breve.
+
+Nunca inventes productos ni precios.
+
+Catálogo disponible:
+${catalogText}`,
+
+          input: message
+        });
+
+      const reply =
+        response.output_text ||
+        "No pude generar una respuesta.";
+
+      res.json({
+        ok: true,
+        reply
+      });
+
+    } catch (error) {
+
+      console.error("ERROR OPENAI:", error);
+
+      res.status(500).json({
+        ok: false,
+        message:
+          "Error al conectar con la inteligencia artificial."
+      });
+    }
+  }
+);
+
+
+/* =========================================================
    CREAR PEDIDO
-========================= */
+========================================================= */
 
 app.post(
   "/api/orders",
@@ -207,23 +372,34 @@ app.post(
     ) {
       return res.status(400).json({
         ok: false,
-        message: "customer e items son obligatorios."
+        message:
+          "El nombre del cliente y los productos son obligatorios."
       });
     }
 
-    const now = new Date().toISOString();
+    const now =
+      new Date().toISOString();
 
     const order = {
+
       id: crypto.randomUUID(),
 
-      businessId: req.business.id,
+      businessId:
+        req.business.id,
 
-      customer: String(customer).trim(),
+      businessName:
+        req.business.name,
 
-      phone: String(phone || "").trim(),
+      customer:
+        String(customer).trim(),
+
+      phone:
+        String(phone || "").trim(),
 
       deliveryType:
-        deliveryType || "delivery",
+        deliveryType === "pickup"
+          ? "pickup"
+          : "delivery",
 
       address:
         String(address || "").trim(),
@@ -231,7 +407,12 @@ app.post(
       location:
         location || null,
 
-      items,
+      items:
+        items.map(item => ({
+          name: String(item.name || ""),
+          quantity: Number(item.quantity || 0),
+          unitPrice: Number(item.unitPrice || 0)
+        })),
 
       notes:
         String(notes || "").trim(),
@@ -239,58 +420,70 @@ app.post(
       total:
         Number(total || 0),
 
-      status: "new",
+      status:
+        "new",
 
-      createdAt: now,
+      driverId:
+        null,
 
-      updatedAt: now
+      createdAt:
+        now,
+
+      updatedAt:
+        now
     };
 
     orders.set(order.id, order);
 
     console.log(
-      "Nuevo pedido:",
+      "NUEVO PEDIDO:",
       order.id,
-      "WhatsApp:",
-      order.phone
+      "NEGOCIO:",
+      order.businessId
     );
 
-    return res.status(201).json({
+    res.status(201).json({
       ok: true,
       order
     });
   }
 );
 
-/* =========================
-   LISTAR PEDIDOS
-========================= */
+
+/* =========================================================
+   LISTAR PEDIDOS DEL NEGOCIO
+========================================================= */
 
 app.get(
   "/api/orders",
   requireActiveBusiness,
   (req, res) => {
 
-    const list = [...orders.values()]
-      .filter(
-        order =>
-          order.businessId === req.business.id
-      )
-      .sort(
-        (a, b) =>
-          b.createdAt.localeCompare(a.createdAt)
-      );
+    const list =
+      [...orders.values()]
+        .filter(
+          order =>
+            order.businessId ===
+            req.business.id
+        )
+        .sort(
+          (a, b) =>
+            b.createdAt.localeCompare(
+              a.createdAt
+            )
+        );
 
-    return res.json({
+    res.json({
       ok: true,
       orders: list
     });
   }
 );
 
-/* =========================
-   CAMBIAR ESTADO
-========================= */
+
+/* =========================================================
+   CAMBIAR ESTADO DEL PEDIDO
+========================================================= */
 
 app.patch(
   "/api/orders/:id/status",
@@ -318,37 +511,38 @@ app.patch(
       "cancelled"
     ];
 
-    const newStatus =
+    const status =
       req.body?.status;
 
-    if (
-      !allowedStatuses.includes(newStatus)
-    ) {
+    if (!allowedStatuses.includes(status)) {
       return res.status(400).json({
         ok: false,
         message: "Estado no válido."
       });
     }
 
-    order.status = newStatus;
+    order.status =
+      status;
 
     order.updatedAt =
       new Date().toISOString();
 
-    orders.set(order.id, order);
+    orders.set(
+      order.id,
+      order
+    );
 
-    return res.json({
+    res.json({
       ok: true,
       order
     });
   }
 );
 
-/* ==================================================
-   PANEL MAESTRO — NEGOCIOS
-================================================== */
 
-/* LISTAR NEGOCIOS */
+/* =========================================================
+   ADMIN — NEGOCIOS
+========================================================= */
 
 app.get(
   "/api/admin/businesses",
@@ -356,22 +550,24 @@ app.get(
   (_req, res) => {
 
     const list =
-      [...businesses.values()].map(
-        business => ({
+      [...businesses.values()]
+        .map(business => ({
           ...business,
           active:
             businessIsActive(business)
-        })
-      );
+        }));
 
-    return res.json({
+    res.json({
       ok: true,
       businesses: list
     });
   }
 );
 
-/* CREAR NEGOCIO */
+
+/* =========================================================
+   ADMIN — CREAR NEGOCIO
+========================================================= */
 
 app.post(
   "/api/admin/businesses",
@@ -379,23 +575,27 @@ app.post(
   (req, res) => {
 
     const {
-      name,
       id,
+      name,
       whatsapp,
       phone,
+      address,
       subscriptionExpiresAt
     } = req.body || {};
 
-    if (!name || !id) {
+    if (!id || !name) {
       return res.status(400).json({
         ok: false,
         message:
-          "Nombre e ID del negocio son obligatorios."
+          "ID y nombre del negocio son obligatorios."
       });
     }
 
     const businessId =
-      String(id).trim();
+      String(id)
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9-_]/g, "-");
 
     if (businesses.has(businessId)) {
       return res.status(409).json({
@@ -406,12 +606,15 @@ app.post(
     }
 
     const business = {
-      id: businessId,
+
+      id:
+        businessId,
 
       name:
         String(name).trim(),
 
-      active: true,
+      active:
+        true,
 
       whatsapp:
         String(whatsapp || "").trim(),
@@ -419,9 +622,15 @@ app.post(
       phone:
         String(phone || "").trim(),
 
+      address:
+        String(address || "").trim(),
+
       subscriptionExpiresAt:
         subscriptionExpiresAt ||
-        "2099-12-31T23:59:59.000Z"
+        "2099-12-31T23:59:59.000Z",
+
+      createdAt:
+        new Date().toISOString()
     };
 
     businesses.set(
@@ -429,14 +638,22 @@ app.post(
       business
     );
 
-    return res.status(201).json({
+    products.set(
+      business.id,
+      []
+    );
+
+    res.status(201).json({
       ok: true,
       business
     });
   }
 );
 
-/* MODIFICAR NEGOCIO */
+
+/* =========================================================
+   ADMIN — MODIFICAR NEGOCIO
+========================================================= */
 
 app.patch(
   "/api/admin/businesses/:id",
@@ -462,13 +679,6 @@ app.patch(
     }
 
     if (
-      typeof req.body?.active === "boolean"
-    ) {
-      business.active =
-        req.body.active;
-    }
-
-    if (
       typeof req.body?.whatsapp === "string"
     ) {
       business.whatsapp =
@@ -483,6 +693,20 @@ app.patch(
     }
 
     if (
+      typeof req.body?.address === "string"
+    ) {
+      business.address =
+        req.body.address.trim();
+    }
+
+    if (
+      typeof req.body?.active === "boolean"
+    ) {
+      business.active =
+        req.body.active;
+    }
+
+    if (
       req.body?.subscriptionExpiresAt
     ) {
       business.subscriptionExpiresAt =
@@ -494,14 +718,17 @@ app.patch(
       business
     );
 
-    return res.json({
+    res.json({
       ok: true,
       business
     });
   }
 );
 
-/* SUSCRIPCIÓN */
+
+/* =========================================================
+   ADMIN — SUSCRIPCIÓN
+========================================================= */
 
 app.post(
   "/api/admin/businesses/:id/subscription",
@@ -537,25 +764,260 @@ app.post(
       business
     );
 
-    return res.json({
+    res.json({
       ok: true,
       business
     });
   }
 );
 
-/* ==================================================
-   PANEL MAESTRO — REPARTIDORES
-================================================== */
 
-/* LISTAR REPARTIDORES */
+/* =========================================================
+   ADMIN — PRODUCTOS
+========================================================= */
+
+app.get(
+  "/api/admin/products/:businessId",
+  requireAdmin,
+  (req, res) => {
+
+    if (!businesses.has(req.params.businessId)) {
+      return res.status(404).json({
+        ok: false,
+        message: "Negocio no encontrado."
+      });
+    }
+
+    res.json({
+      ok: true,
+      products:
+        products.get(req.params.businessId) || []
+    });
+  }
+);
+
+
+app.post(
+  "/api/admin/products/:businessId",
+  requireAdmin,
+  (req, res) => {
+
+    const businessId =
+      req.params.businessId;
+
+    if (!businesses.has(businessId)) {
+      return res.status(404).json({
+        ok: false,
+        message: "Negocio no encontrado."
+      });
+    }
+
+    const {
+      name,
+      price,
+      available
+    } = req.body || {};
+
+    if (
+      !name ||
+      Number.isNaN(Number(price))
+    ) {
+      return res.status(400).json({
+        ok: false,
+        message:
+          "Nombre y precio son obligatorios."
+      });
+    }
+
+    const list =
+      products.get(businessId) || [];
+
+    const product = {
+
+      id:
+        crypto.randomUUID(),
+
+      name:
+        String(name).trim(),
+
+      price:
+        Number(price),
+
+      available:
+        available !== false
+    };
+
+    list.push(product);
+
+    products.set(
+      businessId,
+      list
+    );
+
+    res.status(201).json({
+      ok: true,
+      product
+    });
+  }
+);
+
+
+app.patch(
+  "/api/admin/products/:businessId/:productId",
+  requireAdmin,
+  (req, res) => {
+
+    const list =
+      products.get(req.params.businessId);
+
+    if (!list) {
+      return res.status(404).json({
+        ok: false,
+        message: "Negocio no encontrado."
+      });
+    }
+
+    const product =
+      list.find(
+        p =>
+          p.id ===
+          req.params.productId
+      );
+
+    if (!product) {
+      return res.status(404).json({
+        ok: false,
+        message: "Producto no encontrado."
+      });
+    }
+
+    if (
+      typeof req.body?.name === "string"
+    ) {
+      product.name =
+        req.body.name.trim();
+    }
+
+    if (
+      req.body?.price !== undefined
+    ) {
+      product.price =
+        Number(req.body.price);
+    }
+
+    if (
+      typeof req.body?.available === "boolean"
+    ) {
+      product.available =
+        req.body.available;
+    }
+
+    products.set(
+      req.params.businessId,
+      list
+    );
+
+    res.json({
+      ok: true,
+      product
+    });
+  }
+);
+
+
+/* =========================================================
+   ADMIN — TODOS LOS PEDIDOS
+========================================================= */
+
+app.get(
+  "/api/admin/orders",
+  requireAdmin,
+  (_req, res) => {
+
+    const list =
+      [...orders.values()]
+        .sort(
+          (a, b) =>
+            b.createdAt.localeCompare(
+              a.createdAt
+            )
+        );
+
+    res.json({
+      ok: true,
+      orders: list
+    });
+  }
+);
+
+
+/* =========================================================
+   ADMIN — CAMBIAR ESTADO
+========================================================= */
+
+app.patch(
+  "/api/admin/orders/:id/status",
+  requireAdmin,
+  (req, res) => {
+
+    const order =
+      orders.get(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({
+        ok: false,
+        message: "Pedido no encontrado."
+      });
+    }
+
+    const allowedStatuses = [
+      "new",
+      "preparing",
+      "on_the_way",
+      "delivered",
+      "cancelled"
+    ];
+
+    if (
+      !allowedStatuses.includes(
+        req.body?.status
+      )
+    ) {
+      return res.status(400).json({
+        ok: false,
+        message: "Estado no válido."
+      });
+    }
+
+    order.status =
+      req.body.status;
+
+    order.updatedAt =
+      new Date().toISOString();
+
+    orders.set(
+      order.id,
+      order
+    );
+
+    res.json({
+      ok: true,
+      order
+    });
+  }
+);
+
+
+/* =========================================================
+   ADMIN — REPARTIDORES
+========================================================= */
 
 app.get(
   "/api/admin/drivers",
   requireAdmin,
   (_req, res) => {
 
-    return res.json({
+    res.json({
       ok: true,
       drivers:
         [...drivers.values()]
@@ -563,7 +1025,6 @@ app.get(
   }
 );
 
-/* CREAR REPARTIDOR */
 
 app.post(
   "/api/admin/drivers",
@@ -577,21 +1038,15 @@ app.post(
       phone
     } = req.body || {};
 
-    if (
-      !businessId ||
-      !name
-    ) {
+    if (!businessId || !name) {
       return res.status(400).json({
         ok: false,
         message:
-          "Negocio y nombre del repartidor son obligatorios."
+          "Negocio y nombre son obligatorios."
       });
     }
 
-    const business =
-      businesses.get(businessId);
-
-    if (!business) {
+    if (!businesses.has(businessId)) {
       return res.status(404).json({
         ok: false,
         message:
@@ -600,7 +1055,9 @@ app.post(
     }
 
     const driver = {
-      id: crypto.randomUUID(),
+
+      id:
+        crypto.randomUUID(),
 
       businessId,
 
@@ -613,7 +1070,8 @@ app.post(
       phone:
         String(phone || "").trim(),
 
-      active: true,
+      active:
+        true,
 
       createdAt:
         new Date().toISOString()
@@ -624,23 +1082,91 @@ app.post(
       driver
     );
 
-    return res.status(201).json({
+    res.status(201).json({
       ok: true,
       driver
     });
   }
 );
 
-/* =========================
+
+/* =========================================================
+   ADMIN — ASIGNAR REPARTIDOR
+========================================================= */
+
+app.patch(
+  "/api/admin/orders/:id/driver",
+  requireAdmin,
+  (req, res) => {
+
+    const order =
+      orders.get(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({
+        ok: false,
+        message: "Pedido no encontrado."
+      });
+    }
+
+    const driverId =
+      req.body?.driverId || null;
+
+    if (driverId) {
+
+      const driver =
+        drivers.get(driverId);
+
+      if (!driver) {
+        return res.status(404).json({
+          ok: false,
+          message:
+            "Repartidor no encontrado."
+        });
+      }
+
+      if (
+        driver.businessId !==
+        order.businessId
+      ) {
+        return res.status(400).json({
+          ok: false,
+          message:
+            "El repartidor pertenece a otro negocio."
+        });
+      }
+    }
+
+    order.driverId =
+      driverId;
+
+    order.updatedAt =
+      new Date().toISOString();
+
+    orders.set(
+      order.id,
+      order
+    );
+
+    res.json({
+      ok: true,
+      order
+    });
+  }
+);
+
+
+/* =========================================================
    SERVIDOR
-========================= */
+========================================================= */
 
 app.listen(
   PORT,
   "0.0.0.0",
   () => {
+
     console.log(
-      `ConectaRD AI running on port ${PORT}`
+      `ConectaRD AI 7.2 funcionando en puerto ${PORT}`
     );
 
     console.log(
@@ -656,5 +1182,11 @@ app.listen(
         ? "CONFIGURADA"
         : "NO CONFIGURADA"
     );
+
+    console.log(
+      "MODELO:",
+      OPENAI_MODEL
+    );
   }
 );
+   
