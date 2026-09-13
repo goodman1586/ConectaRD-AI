@@ -533,6 +533,31 @@ async function confirmOrder() {
       <div class="line"><span>Productos</span><b>${escapeHtml(items.map(x => x.quantity + ' × ' + x.name).join(', '))}</b></div>
       <div class="line"><span>Delivery</span><b>${delivery === 'delivery' ? money(fee) : 'Recogida'}</b></div>
       <div class="line"><span>Total</span><b>${money(total)}</b></div>
+      <div style="
+  margin-top:15px;
+  padding:18px;
+  border-radius:14px;
+  background:#fff7ed;
+  border:2px solid #f59e0b;
+  text-align:center;
+">
+  <div style="font-size:14px;font-weight:bold;">
+    🔐 CÓDIGO DE ENTREGA
+  </div>
+
+  <div style="
+    font-size:34px;
+    font-weight:900;
+    letter-spacing:8px;
+    margin:8px 0;
+  ">
+    ${escapeHtml(o.deliveryCode || '----')}
+  </div>
+
+  <div class="muted">
+    Dile este código al repartidor cuando recibas tu pedido.
+  </div>
+</div>
     `;
 
     $('result').classList.remove('hidden');
