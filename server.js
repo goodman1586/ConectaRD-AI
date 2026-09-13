@@ -592,7 +592,7 @@ app.patch("/api/products/:id/availability", requireActiveBusiness, async (req, r
    AGREGAR PRODUCTO
 ========================= */
 
-app.post("/api/products", requireActiveBusiness, (req, res) => {
+app.post("/api/products", requireActiveBusiness, async (req, res) => {
   try {
     const {
       name,
@@ -600,7 +600,7 @@ app.post("/api/products", requireActiveBusiness, (req, res) => {
       price,
       category,
       image,
-      active
+      available
     } = req.body || {};
 
     if (!name || String(name).trim() === "") {
@@ -619,24 +619,59 @@ app.post("/api/products", requireActiveBusiness, (req, res) => {
       });
     }
 
-    const product = {
-      id: crypto.randomUUID(),
-      businessId: req.business.id,
-      name: String(name).trim(),
-      description: String(description || "").trim(),
-      price: numericPrice,
-      category: String(category || "").trim(),
-      image: String(image || "").trim(),
-      active: active !== false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    products.set(product.id, product);
+    const result = await pool.query(
+      `
+      INSERT INTO products (
+        id,
+        business_id,
+        name,
+        description,
+        price,
+        category,
+        image,
+        available,
+        created_at,
+        updated_at
+      )
+      VALUES (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7,
+        $8,
+        NOW(),
+        NOW()
+      )
+      RETURNING
+        id,
+        business_id,
+        name,
+        description,
+        price,
+        category,
+        image,
+        available,
+        created_at,
+        updated_at
+      `,
+      [
+        crypto.randomUUID(),
+        req.business.id,
+        String(name).trim(),
+        String(description || "").trim(),
+        numericPrice,
+        String(category || "").trim(),
+        String(image || "").trim(),
+        available !== false
+      ]
+    );
 
     return res.status(201).json({
       ok: true,
-      product
+      product: result.rows[0]
     });
 
   } catch (error) {
