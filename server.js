@@ -409,6 +409,186 @@ app.get(
   }
 );
 /* =========================
+   GESTIÓN DE PRODUCTOS
+   EDITAR / ELIMINAR / MOSTRAR-OCULTAR
+========================= */
+
+// EDITAR PRODUCTO
+app.patch("/api/products/:id", requireActiveBusiness, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      name,
+      description,
+      price,
+      image,
+      category,
+      available
+    } = req.body || {};
+
+    if (!name || String(name).trim() === "") {
+      return res.status(400).json({
+        ok: false,
+        message: "El nombre del producto es obligatorio."
+      });
+    }
+
+    const numericPrice = Number(price);
+
+    if (!Number.isFinite(numericPrice) || numericPrice < 0) {
+      return res.status(400).json({
+        ok: false,
+        message: "El precio del producto no es válido."
+      });
+    }
+
+    const result = await pool.query(
+      `
+      UPDATE products
+      SET
+        name = $1,
+        description = $2,
+        price = $3,
+        image = $4,
+        category = $5,
+        available = $6
+      WHERE id = $7
+        AND business_id = $8
+      RETURNING
+        id,
+        name,
+        description,
+        price,
+        image,
+        category,
+        available
+      `,
+      [
+        String(name).trim(),
+        String(description || "").trim(),
+        numericPrice,
+        String(image || "").trim(),
+        String(category || "").trim(),
+        available !== false,
+        id,
+        req.business.id
+      ]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        ok: false,
+        message: "Producto no encontrado."
+      });
+    }
+
+    return res.json({
+      ok: true,
+      product: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error("Error al editar producto:", error);
+
+    return res.status(500).json({
+      ok: false,
+      message: "No se pudo editar el producto."
+    });
+  }
+});
+
+
+// ELIMINAR PRODUCTO
+app.delete("/api/products/:id", requireActiveBusiness, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `
+      DELETE FROM products
+      WHERE id = $1
+        AND business_id = $2
+      RETURNING id
+      `,
+      [id, req.business.id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        ok: false,
+        message: "Producto no encontrado."
+      });
+    }
+
+    return res.json({
+      ok: true,
+      message: "Producto eliminado correctamente."
+    });
+
+  } catch (error) {
+    console.error("Error al eliminar producto:", error);
+
+    return res.status(500).json({
+      ok: false,
+      message: "No se pudo eliminar el producto."
+    });
+  }
+});
+
+
+// MOSTRAR / OCULTAR PRODUCTO
+app.patch("/api/products/:id/availability", requireActiveBusiness, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { available } = req.body || {};
+
+    if (typeof available !== "boolean") {
+      return res.status(400).json({
+        ok: false,
+        message: "El valor de disponibilidad debe ser true o false."
+      });
+    }
+
+    const result = await pool.query(
+      `
+      UPDATE products
+      SET available = $1
+      WHERE id = $2
+        AND business_id = $3
+      RETURNING
+        id,
+        name,
+        available
+      `,
+      [
+        available,
+        id,
+        req.business.id
+      ]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        ok: false,
+        message: "Producto no encontrado."
+      });
+    }
+
+    return res.json({
+      ok: true,
+      product: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error("Error al cambiar disponibilidad:", error);
+
+    return res.status(500).json({
+      ok: false,
+      message: "No se pudo cambiar la visibilidad del producto."
+    });
+  }
+});
+/* =========================
    AGREGAR PRODUCTO
 ========================= */
 
