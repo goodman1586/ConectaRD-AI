@@ -93,6 +93,8 @@ async function initDatabase() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+        ALTER TABLE orders
+      ADD COLUMN IF NOT EXISTS delivery_code TEXT;
 
     CREATE INDEX IF NOT EXISTS idx_products_business
       ON products(business_id);
@@ -811,6 +813,9 @@ app.post(
       }
 
       const id = crypto.randomUUID();
+      const deliveryCode = String(
+  crypto.randomInt(1000, 10000)
+);
 
       const cleanItems =
         items.map(item => ({
@@ -830,41 +835,43 @@ app.post(
       const result = await pool.query(
         `
         INSERT INTO orders
-        (
-          id,
-          business_id,
-          customer,
-          phone,
-          delivery_type,
-          address,
-          location,
-          items,
-          notes,
-          total,
-          status,
-          created_at,
-          updated_at
-        )
-        VALUES
-        (
-          $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
-          'new',$11,$11
-        )
+(
+  id,
+  business_id,
+  customer,
+  phone,
+  delivery_type,
+  address,
+  location,
+  items,
+  notes,
+  total,
+  status,
+  delivery_code,
+  created_at,
+  updated_at
+)
+      VALUES
+(
+  $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
+  'new',$11,$12,$12
+)
         RETURNING *
         `,
-        [
-          id,
-          req.business.id,
-          clean(customer),
-          clean(phone),
-          deliveryType || "delivery",
-          clean(address),
-          location || null,
-          JSON.stringify(cleanItems),
-          clean(notes),
-          moneyNumber(total),
-          now
-        ]
+       [
+  id,
+  req.business.id,
+  clean(customer),
+  clean(phone),
+  deliveryType || "delivery",
+  clean(address),
+  location || null,
+  JSON.stringify(cleanItems),
+  clean(notes),
+  moneyNumber(total),
+  deliveryCode,
+  now
+]
       );
 
       const row = result.rows[0];
