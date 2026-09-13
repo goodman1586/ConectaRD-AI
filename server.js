@@ -889,6 +889,7 @@ app.post(
         total: Number(row.total),
         status: row.status,
         driverId: row.driver_id,
+        deliveryCode: row.delivery_code,
         createdAt:
           new Date(row.created_at).toISOString(),
         updatedAt:
