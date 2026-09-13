@@ -798,14 +798,32 @@ function renderDriver() {
         return;
       }
 
-      btn.disabled = true;
-      btn.textContent = 'Verificando...';
+      const originalText = btn.textContent;
 
-      await setStatus(
-        btn.dataset.id,
-        'delivered',
-        cleanCode
-      );
+btn.disabled = true;
+btn.textContent = 'Verificando...';
+
+try {
+
+  await setStatus(
+    btn.dataset.id,
+    'delivered',
+    cleanCode
+  );
+
+  btn.textContent = '✅ Entregado';
+
+} catch (e) {
+
+  btn.disabled = false;
+  btn.textContent = originalText;
+
+  alert(
+    e.message ||
+    'No se pudo verificar el código.'
+  );
+
+}
 
     };
 
