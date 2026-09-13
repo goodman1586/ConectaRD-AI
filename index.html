@@ -501,6 +501,12 @@ async function confirmOrder() {
     $('receipt').innerHTML = `
       <div class="line"><span>Pedido</span><b>#${escapeHtml(o.id.slice(0,8))}</b></div>
       <div class="line"><span>Cliente</span><b>${escapeHtml(name)}</b></div>
+      <div class="line">
+  <span>🔐 Código de entrega</span>
+  <b style="font-size:24px;letter-spacing:4px">
+    ${escapeHtml(o.deliveryCode || 'No disponible')}
+  </b>
+</div>
       <div class="line"><span>Productos</span><b>${escapeHtml(items.map(x => x.quantity + ' × ' + x.name).join(', '))}</b></div>
       <div class="line"><span>Delivery</span><b>${delivery === 'delivery' ? money(fee) : 'Recogida'}</b></div>
       <div class="line"><span>Total</span><b>${money(total)}</b></div>
