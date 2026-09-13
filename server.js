@@ -1,1192 +1,1031 @@
-import express from "express";
-import cors from "cors";
-import crypto from "crypto";
-import OpenAI from "openai";
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ConectaRD AI 8.0 — IA + Delivery + Panel Maestro</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#17202a;padding-bottom:90px}
+header{background:#111827;color:#fff;padding:15px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.wrap{max-width:1100px;margin:auto;padding:16px}
+.card{background:#fff;border-radius:16px;padding:17px;margin-bottom:15px;box-shadow:0 3px 15px #0000000b}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.products{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.product,.order{border:1px solid #e1e5ea;border-radius:12px;padding:13px;margin:9px 0}
+.price{font-weight:bold;margin:7px 0 10px}
+button{border:0;border-radius:9px;padding:11px 13px;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.6;cursor:not-allowed}
+.primary{background:#111827;color:#fff}.soft{background:#edf1f5}
+.green{background:#dcfce7;color:#166534}.danger{background:#fee2e2;color:#991b1b}
+input,textarea,select{width:100%;padding:11px;border:1px solid #d5dae1;border-radius:9px;margin:5px 0 11px;font:inherit}
+.line{display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:9px 0;gap:10px}
+.total{font-size:20px;font-weight:bold;display:flex;justify-content:space-between;margin-top:12px}
+.location{border:1px dashed #9ca3af;border-radius:12px;padding:13px;background:#fafafa}
+.muted{color:#667085;font-size:14px}
+.chat{height:240px;overflow:auto;border:1px solid #e2e6eb;border-radius:12px;padding:10px;background:#fafafa;margin-bottom:10px}
+.msg{margin:8px 0;padding:10px 12px;border-radius:12px;max-width:90%}
+.user{margin-left:auto;background:#111827;color:#fff}.assistant{background:#e9eef5}
+.orderbar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;box-shadow:0 -3px 14px #0002;z-index:30}
+.orderbar-inner{max-width:1100px;margin:auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hidden{display:none}.success{color:#176b3a}.error{color:#b42318}
+.badge{background:#111827;color:#fff;border-radius:99px;padding:4px 8px}
+.admin-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.admin-tabs button.active{background:#111827;color:#fff}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:700px}
+th,td{padding:9px;border-bottom:1px solid #eee;text-align:left;vertical-align:top}
+.small{font-size:12px}
+.status-on{color:#176b3a;font-weight:bold}.status-off{color:#b42318;font-weight:bold}
+@media(max-width:720px){.grid,.products{grid-template-columns:1fr}.orderbar-inner{padding:9px 12px}header{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
 
-console.log("INICIANDO CONECTARD AI...");
+<header>
+  <b>ConectaRD AI</b>
+  <span>8.0 · Multi-negocio · IA + Delivery</span>
+</header>
 
-const app = express();
+<div class="wrap">
 
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "x-business-id", "x-admin-key"]
-}));
+<!-- ESTADO -->
+<div class="card">
+  <h2>🏪 ConectaRD AI</h2>
+  <div class="line"><span>Negocio</span><b id="businessName">Cargando...</b></div>
+  <div class="line"><span>Estado</span><b id="subStatus">Comprobando...</b></div>
+  <div class="line"><span>IA</span><b id="aiStatus">Comprobando...</b></div>
+  <div class="line"><span>Conexión</span><b id="connectionStatus">Comprobando...</b></div>
+</div>
 
-app.use(express.json({ limit: "1mb" }));
+<!-- PANEL MAESTRO -->
+<div class="card">
+  <h2>👑 Panel Maestro del Administrador</h2>
+  <p class="muted">
+    Desde aquí puedes administrar negocios, suscripciones, productos, disponibilidad
+    y repartidores. La clave de administrador se valida en el backend.
+  </p>
 
-const PORT = process.env.PORT || 10000;
+  <label>Clave de administrador</label>
+  <input id="adminKey" type="password" placeholder="Escribe ADMIN_KEY de Render">
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="primary" id="adminLoginBtn">🔐 Entrar al panel</button>
+    <button class="soft" id="adminLogoutBtn">Salir</button>
+  </div>
+  <p id="adminStatus" class="muted"></p>
 
-const ADMIN_KEY = process.env.ADMIN_KEY || "";
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
-const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5";
+  <div id="adminPanel" class="hidden">
+    <div class="admin-tabs">
+      <button class="soft adminTab active" data-tab="businessesTab">🏪 Negocios</button>
+      <button class="soft adminTab" data-tab="productsTab">🛒 Productos</button>
+      <button class="soft adminTab" data-tab="driversTab">🚴 Repartidores</button>
+    </div>
 
-const openai = OPENAI_API_KEY
-  ? new OpenAI({ apiKey: OPENAI_API_KEY })
-  : null;
+    <!-- NEGOCIOS -->
+    <section id="businessesTab" class="adminSection">
+      <h3>🏪 Negocios y suscripciones</h3>
+      <div class="grid">
+        <div>
+          <h4>Crear nuevo negocio</h4>
+          <input id="newBusinessId" placeholder="ID único: negocio-punta-cana">
+          <input id="newBusinessName" placeholder="Nombre del negocio">
+          <input id="newBusinessWhatsApp" placeholder="WhatsApp">
+          <input id="newBusinessPhone" placeholder="Teléfono">
+          <label>Vencimiento de suscripción</label>
+          <input id="newBusinessExpiry" type="date">
+          <button class="green" id="createBusinessBtn">➕ Crear negocio</button>
+        </div>
+        <div>
+          <h4>Negocio seleccionado</h4>
+          <select id="adminBusinessSelect"></select>
+          <p class="muted">Selecciona un negocio para administrar sus productos.</p>
+          <button class="soft" id="refreshBusinessesBtn">🔄 Actualizar negocios</button>
+        </div>
+      </div>
+      <div id="businessesList" class="table-wrap" style="margin-top:12px"></div>
+    </section>
 
+    <!-- PRODUCTOS -->
+    <section id="productsTab" class="adminSection hidden">
+      <h3>🛒 Productos por negocio</h3>
+      <p class="muted">
+        Cada negocio tiene su propio catálogo. Puedes agregar, editar, quitar o
+        desactivar productos sin afectar a los demás negocios.
+      </p>
+      <select id="productBusinessSelect"></select>
 
-/* =========================================================
-   NEGOCIOS
-========================================================= */
+      <div class="grid">
+        <div>
+          <h4>Nuevo producto</h4>
+          <input id="newProductName" placeholder="Nombre del producto">
+          <input id="newProductPrice" type="number" min="0" step="0.01" placeholder="Precio RD$">
+          <button class="green" id="addProductBtn">➕ Agregar producto</button>
+        </div>
+        <div>
+          <h4>Acciones</h4>
+          <button class="soft" id="refreshProductsBtn">🔄 Actualizar catálogo</button>
+        </div>
+      </div>
 
-const businesses = new Map([
-  [
-    "anamuya-demo",
-    {
-      id: "anamuya-demo",
-      name: "Negocio Demo Anamuya",
-      active: true,
-      whatsapp: "",
-      phone: "",
-      address: "Higüey, República Dominicana",
-      subscriptionExpiresAt: "2099-12-31T23:59:59.000Z",
-      createdAt: new Date().toISOString()
-    }
-  ]
-]);
+      <div id="adminProductsList" class="table-wrap" style="margin-top:12px"></div>
+    </section>
 
+    <!-- REPARTIDORES -->
+    <section id="driversTab" class="adminSection hidden">
+      <h3>🚴 Repartidores</h3>
+      <div class="grid">
+        <div>
+          <select id="driverBusinessSelect"></select>
+          <input id="newDriverName" placeholder="Nombre">
+          <input id="newDriverWhatsApp" placeholder="WhatsApp">
+          <input id="newDriverPhone" placeholder="Teléfono">
+          <button class="green" id="addDriverBtn">➕ Agregar repartidor</button>
+        </div>
+        <div>
+          <button class="soft" id="refreshDriversBtn">🔄 Actualizar repartidores</button>
+        </div>
+      </div>
+      <div id="adminDriversList" class="table-wrap" style="margin-top:12px"></div>
+    </section>
+  </div>
+</div>
 
-/* =========================================================
-   PRODUCTOS
-========================================================= */
+<!-- IA -->
+<div class="card">
+  <h2>🤖 Asistente IA</h2>
+  <p class="muted">La clave de OpenAI nunca está dentro de esta página.</p>
+  <div id="chat" class="chat"></div>
+  <div style="display:flex;gap:8px">
+    <input id="aiInput" style="margin:0" placeholder="Ej.: Tengo RD$200, ¿qué me recomiendas?">
+    <button type="button" id="aiBtn" class="primary">Enviar</button>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">
+    <button type="button" class="soft quick" data-q="Quiero ver el menú">Ver menú</button>
+    <button type="button" class="soft quick" data-q="Tengo RD$200, ¿qué me recomiendas?">Recomiéndame algo</button>
+    <button type="button" class="soft quick" data-q="Quiero hacer un pedido">Hacer pedido</button>
+  </div>
+</div>
 
-const products = new Map([
-  [
-    "anamuya-demo",
-    [
-      {
-        id: "p1",
-        name: "Tostada",
-        price: 50,
-        available: true
-      },
-      {
-        id: "p2",
-        name: "Jugo natural",
-        price: 40,
-        available: true
-      },
-      {
-        id: "p3",
-        name: "Batida",
-        price: 80,
-        available: true
-      },
-      {
-        id: "p4",
-        name: "Queque",
-        price: 10,
-        available: true
-      }
-    ]
-  ]
-]);
+<!-- NEGOCIO -->
+<div class="card">
+  <h2>📦 Panel del negocio</h2>
+  <p class="muted">Pedidos del negocio seleccionado.</p>
+  <div id="dashboard"><p class="muted">Cargando...</p></div>
+</div>
 
+<!-- REPARTIDOR -->
+<div class="card">
+  <h2>🚴 Panel del repartidor</h2>
+  <div id="driverDashboard"><p class="muted">Cargando...</p></div>
+</div>
 
-/* =========================================================
-   PEDIDOS
-========================================================= */
+<!-- CATÁLOGO -->
+<div class="card">
+  <h2>🛒 Haz tu pedido</h2>
+  <div id="products" class="products"></div>
+</div>
 
-const orders = new Map();
+<div class="grid">
+  <div class="card" id="pedidoCard">
+    <h2>🧾 Tu pedido <span id="cartCount" class="badge">0</span></h2>
+    <div id="cart"><p class="muted">No has agregado productos.</p></div>
+    <div class="total"><span>Subtotal</span><span id="subtotal">RD$0</span></div>
+  </div>
 
+  <div class="card">
+    <h2>📍 Datos de entrega</h2>
+    <input id="customer" placeholder="Nombre del cliente">
+    <input id="phone" placeholder="WhatsApp">
+    <select id="delivery">
+      <option value="delivery">🚚 Delivery</option>
+      <option value="pickup">🏪 Recoger en el negocio</option>
+    </select>
 
-/* =========================================================
-   REPARTIDORES
-========================================================= */
+    <div id="deliveryBox">
+      <div class="location">
+        <b>📍 Ubicación de entrega</b>
+        <p class="muted">Usa GPS o escribe una dirección.</p>
+        <button type="button" id="locationBtn" class="primary">Compartir mi ubicación</button>
+        <p id="locStatus" class="muted">Ubicación pendiente.</p>
+        <label>Dirección</label>
+        <input id="address" placeholder="Calle, número, sector, referencia">
+        <button type="button" id="mapsBtn" class="soft">Abrir Google Maps</button>
+      </div>
+      <label>Instrucciones</label>
+      <textarea id="notes" placeholder="Ej.: casa azul, segundo piso..."></textarea>
+    </div>
 
-const drivers = new Map();
+    <button type="button" id="confirmBtn" class="green" style="width:100%">Confirmar pedido</button>
+    <p id="orderStatus" class="muted"></p>
+  </div>
+</div>
 
+<div class="card hidden" id="result">
+  <h2>✅ Pedido confirmado</h2>
+  <div id="receipt"></div>
+</div>
 
-/* =========================================================
-   FUNCIONES GENERALES
-========================================================= */
+</div>
 
-function businessIsActive(business) {
-  if (!business) return false;
+<div class="orderbar">
+  <div class="orderbar-inner">
+    <div><b>🛒 Pedido</b> <span id="barItems">0 productos · </span><strong id="barTotal">RD$0</strong></div>
+    <button type="button" id="viewOrderBtn" class="primary">Ver pedido</button>
+  </div>
+</div>
 
-  return (
-    business.active === true &&
-    new Date(business.subscriptionExpiresAt).getTime() > Date.now()
+<script>
+'use strict';
+
+const API = 'https://conectard-ai-2.onrender.com';
+
+const params = new URLSearchParams(location.search);
+let BUSINESS_ID = params.get('businessId') || 'anamuya-demo';
+
+let productsData = [];
+let cart = {};
+let coords = null;
+let orders = [];
+let adminBusinesses = [];
+
+const $ = id => document.getElementById(id);
+const money = n => 'RD$' + Number(n || 0).toLocaleString('es-DO', {minimumFractionDigits:0, maximumFractionDigits:2});
+
+function escapeHtml(v) {
+  return String(v ?? '').replace(/[&<>"']/g, m => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+  }[m]));
+}
+
+async function api(path, options = {}) {
+  const headers = {
+    'Content-Type':'application/json',
+    'x-business-id': BUSINESS_ID,
+    ...(options.headers || {})
+  };
+  const r = await fetch(API + path, {...options, headers});
+  const data = await r.json().catch(() => ({ok:false,message:'Respuesta no válida'}));
+  if (!r.ok) throw new Error(data.message || data.error || 'Error de conexión');
+  return data;
+}
+
+function adminHeaders() {
+  const key = sessionStorage.getItem('conectard_admin_key') || '';
+  return {'x-admin-key': key};
+}
+
+async function adminApi(path, options = {}) {
+  const headers = {
+    'Content-Type':'application/json',
+    ...adminHeaders(),
+    ...(options.headers || {})
+  };
+  const r = await fetch(API + path, {...options, headers});
+  const data = await r.json().catch(() => ({ok:false,message:'Respuesta no válida'}));
+  if (!r.ok) throw new Error(data.message || data.error || 'Error de administrador');
+  return data;
+}
+
+/* =========================
+   NEGOCIO / CATÁLOGO
+========================= */
+async function loadBusiness() {
+  try {
+    const d = await fetch(API + '/api/business/' + encodeURIComponent(BUSINESS_ID)).then(r => r.json());
+    if (!d.ok) throw new Error(d.message || 'Negocio no encontrado');
+    $('businessName').textContent = d.business.name;
+    $('subStatus').textContent = d.business.active ? '✅ Suscripción activa' : '⛔ Suscripción inactiva';
+  } catch(e) {
+    $('businessName').textContent = 'No disponible';
+    $('subStatus').textContent = '⚠️ ' + e.message;
+  }
+}
+
+async function loadProducts() {
+  try {
+    const d = await api('/api/products');
+    productsData = Array.isArray(d.products) ? d.products.filter(p => p.available) : [];
+    renderProducts();
+    renderCart();
+  } catch(e) {
+    $('products').innerHTML = '<p class="error">' + escapeHtml(e.message) + '</p>';
+  }
+}
+
+function renderProducts() {
+  if (!productsData.length) {
+    $('products').innerHTML = '<p class="muted">No hay productos disponibles.</p>';
+    return;
+  }
+
+  $('products').innerHTML = productsData.map(p => `
+    <div class="product">
+      <b>${escapeHtml(p.name)}</b>
+      <div class="price">${money(p.price)}</div>
+      <button type="button" class="soft add" data-id="${escapeHtml(p.id)}">Agregar al carrito</button>
+    </div>
+  `).join('');
+
+  document.querySelectorAll('.add').forEach(b => {
+    b.onclick = () => add(b.dataset.id);
+  });
+}
+
+function add(id) {
+  const p = productsData.find(x => x.id === id);
+  if (!p) return;
+  cart[id] = (cart[id] || 0) + 1;
+  renderCart();
+}
+
+function renderCart() {
+  const ids = Object.keys(cart).filter(id => productsData.some(p => p.id === id));
+
+  $('cart').innerHTML = ids.length ? ids.map(id => {
+    const p = productsData.find(x => x.id === id);
+    return `<div class="line">
+      <span>${cart[id]} × ${escapeHtml(p.name)}</span>
+      <b>${money(cart[id] * p.price)}</b>
+    </div>`;
+  }).join('') : '<p class="muted">No has agregado productos.</p>';
+
+  const subtotal = ids.reduce((s,id) => {
+    const p = productsData.find(x => x.id === id);
+    return s + cart[id] * p.price;
+  }, 0);
+
+  const count = ids.reduce((s,id) => s + cart[id], 0);
+  $('subtotal').textContent = money(subtotal);
+  $('cartCount').textContent = count;
+  $('barItems').textContent = count + ' producto' + (count === 1 ? '' : 's') + ' · ';
+  $('barTotal').textContent = money(subtotal);
+}
+
+function deliveryChanged() {
+  $('deliveryBox').classList.toggle('hidden', $('delivery').value !== 'delivery');
+}
+$('delivery').onchange = deliveryChanged;
+
+$('locationBtn').onclick = () => {
+  $('locStatus').textContent = '📍 Solicitando ubicación...';
+
+  if (!window.isSecureContext) {
+    $('locStatus').textContent = 'Abre la página desde HTTPS.';
+    return;
+  }
+
+  if (!navigator.geolocation) {
+    $('locStatus').textContent = 'GPS no disponible. Escribe la dirección.';
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      coords = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        accuracy: Math.round(pos.coords.accuracy || 0)
+      };
+      $('locStatus').textContent = '✅ Ubicación compartida. Precisión aproximada: ' + coords.accuracy + ' m';
+    },
+    err => {
+      $('locStatus').textContent = err.code === 1
+        ? 'Permiso rechazado. Permite la ubicación.'
+        : 'No se pudo obtener GPS. Puedes usar la dirección.';
+    },
+    {enableHighAccuracy:true, timeout:15000, maximumAge:0}
   );
-}
+};
 
+$('mapsBtn').onclick = () => {
+  const q = coords ? `${coords.lat},${coords.lng}` : $('address').value.trim();
+  const url = q
+    ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q)
+    : 'https://www.google.com/maps/';
+  window.open(url, '_blank');
+};
 
-function getBusinessFromRequest(req) {
-  const id =
-    req.header("x-business-id") ||
-    req.query.businessId ||
-    req.body?.businessId;
-
-  return businesses.get(id);
-}
-
-
-/* =========================================================
-   NEGOCIO ACTIVO
-========================================================= */
-
-function requireActiveBusiness(req, res, next) {
-  const business = getBusinessFromRequest(req);
-
-  if (!business) {
-    return res.status(404).json({
-      ok: false,
-      code: "BUSINESS_NOT_FOUND",
-      message: "Negocio no encontrado."
-    });
-  }
-
-  if (!businessIsActive(business)) {
-    return res.status(402).json({
-      ok: false,
-      code: "BUSINESS_SUSPENDED",
-      message: "El negocio no tiene una suscripción activa."
-    });
-  }
-
-  req.business = business;
-
-  next();
-}
-
-
-/* =========================================================
-   ADMINISTRADOR
-========================================================= */
-
-function requireAdmin(req, res, next) {
-  if (!ADMIN_KEY) {
-    return res.status(500).json({
-      ok: false,
-      code: "ADMIN_KEY_NOT_CONFIGURED",
-      message: "ADMIN_KEY no está configurada en Render."
-    });
-  }
-
-  const key = req.header("x-admin-key");
-
-  if (!key || key !== ADMIN_KEY) {
-    return res.status(401).json({
-      ok: false,
-      code: "INVALID_ADMIN_KEY",
-      message: "Clave de administrador incorrecta."
-    });
-  }
-
-  next();
-}
-
-
-/* =========================================================
-   HEALTH
-========================================================= */
-
-app.get("/health", (_req, res) => {
-  res.json({
-    ok: true,
-    service: "ConectaRD AI",
-    version: "7.2",
-    aiConfigured: Boolean(OPENAI_API_KEY),
-    adminConfigured: Boolean(ADMIN_KEY),
-    businesses: businesses.size,
-    time: new Date().toISOString()
-  });
-});
-
-
-/* =========================================================
-   RUTA PRINCIPAL
-========================================================= */
-
-app.get("/", (_req, res) => {
-  res.json({
-    ok: true,
-    service: "ConectaRD AI",
-    message: "Backend funcionando correctamente."
-  });
-});
-
-
-/* =========================================================
-   NEGOCIO PÚBLICO
-========================================================= */
-
-app.get("/api/business/:businessId", (req, res) => {
-  const business = businesses.get(req.params.businessId);
-
-  if (!business) {
-    return res.status(404).json({
-      ok: false,
-      code: "BUSINESS_NOT_FOUND",
-      message: "Negocio no encontrado."
-    });
-  }
-
-  res.json({
-    ok: true,
-    business: {
-      id: business.id,
-      name: business.name,
-      active: businessIsActive(business),
-      whatsapp: business.whatsapp,
-      phone: business.phone,
-      address: business.address
-    }
-  });
-});
-
-
-/* =========================================================
-   PRODUCTOS PÚBLICOS
-========================================================= */
-
-app.get(
-  "/api/products",
-  requireActiveBusiness,
-  (req, res) => {
-
-    res.json({
-      ok: true,
-      business: req.business,
-      products: products.get(req.business.id) || []
-    });
-  }
-);
-
-
-/* =========================================================
+/* =========================
    IA
-========================================================= */
+========================= */
+function addChat(role, text) {
+  const d = document.createElement('div');
+  d.className = 'msg ' + role;
+  d.textContent = String(text ?? '');
+  $('chat').appendChild(d);
+  $('chat').scrollTop = $('chat').scrollHeight;
+}
 
-app.post(
-  "/api/ai",
-  requireActiveBusiness,
-  async (req, res) => {
+async function askAI() {
+  const input = $('aiInput');
+  const q = input.value.trim();
+  if (!q) return;
 
-    try {
+  addChat('user', q);
+  input.value = '';
+  $('aiBtn').disabled = true;
+  $('aiBtn').textContent = '...';
 
-      const message =
-        String(req.body?.message || "").trim();
-
-      if (!message) {
-        return res.status(400).json({
-          ok: false,
-          message: "El mensaje es obligatorio."
-        });
-      }
-
-      if (!openai) {
-        return res.status(503).json({
-          ok: false,
-          message:
-            "OPENAI_API_KEY no está configurada en Render."
-        });
-      }
-
-      const catalog =
-        products.get(req.business.id) || [];
-
-      const catalogText =
-        catalog
-          .filter(product => product.available)
-          .map(
-            product =>
-              `${product.name}: RD$${product.price}`
-          )
-          .join(", ");
-
-      const response =
-        await openai.responses.create({
-
-          model: OPENAI_MODEL,
-
-          instructions:
-            `Eres ConectaRD AI, el asistente virtual del negocio "${req.business.name}".
-
-Ayuda al cliente con:
-- productos
-- precios
-- recomendaciones
-- pedidos
-- delivery
-- recogida en el negocio
-
-Sé amable, claro y breve.
-
-Nunca inventes productos ni precios.
-
-Catálogo disponible:
-${catalogText}`,
-
-          input: message
-        });
-
-      const reply =
-        response.output_text ||
-        "No pude generar una respuesta.";
-
-      res.json({
-        ok: true,
-        reply
-      });
-
-    } catch (error) {
-
-      console.error("ERROR OPENAI:", error);
-
-      res.status(500).json({
-        ok: false,
-        message:
-          "Error al conectar con la inteligencia artificial."
-      });
-    }
+  try {
+    const d = await api('/api/ai', {
+      method:'POST',
+      body:JSON.stringify({message:q})
+    });
+    addChat('assistant', d.reply || 'No pude generar una respuesta.');
+  } catch(e) {
+    addChat('assistant', '⚠️ ' + e.message);
+  } finally {
+    $('aiBtn').disabled = false;
+    $('aiBtn').textContent = 'Enviar';
   }
-);
+}
 
+$('aiBtn').onclick = askAI;
+$('aiInput').onkeydown = e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    askAI();
+  }
+};
+document.querySelectorAll('.quick').forEach(b => {
+  b.onclick = () => {
+    $('aiInput').value = b.dataset.q;
+    askAI();
+  };
+});
 
-/* =========================================================
-   CREAR PEDIDO
-========================================================= */
+/* =========================
+   PEDIDOS
+========================= */
+async function confirmOrder() {
+  const ids = Object.keys(cart);
+  const name = $('customer').value.trim();
+  const phone = $('phone').value.trim();
+  const delivery = $('delivery').value;
 
-app.post(
-  "/api/orders",
-  requireActiveBusiness,
-  (req, res) => {
+  if (!ids.length) return alert('Agrega al menos un producto.');
+  if (!name || !phone) return alert('Completa nombre y WhatsApp.');
+  if (delivery === 'delivery' && !coords && !$('address').value.trim()) {
+    return alert('Comparte GPS o escribe una dirección.');
+  }
 
-    const {
-      customer,
-      phone,
-      deliveryType,
-      address,
-      location,
-      items,
-      notes,
-      total
-    } = req.body || {};
+  const items = ids.map(id => {
+    const p = productsData.find(x => x.id === id);
+    return {name:p.name, quantity:cart[id], unitPrice:p.price};
+  });
 
-    if (
-      !customer ||
-      !Array.isArray(items) ||
-      items.length === 0
-    ) {
-      return res.status(400).json({
-        ok: false,
-        message:
-          "El nombre del cliente y los productos son obligatorios."
-      });
-    }
+  const subtotal = items.reduce((s,x) => s + x.quantity * x.unitPrice, 0);
+  const fee = delivery === 'delivery' ? 50 : 0;
+  const total = subtotal + fee;
 
-    const now =
-      new Date().toISOString();
+  $('confirmBtn').disabled = true;
+  $('orderStatus').textContent = 'Enviando pedido...';
 
-    const order = {
+  try {
+    const d = await api('/api/orders', {
+      method:'POST',
+      body:JSON.stringify({
+        customer:name,
+        phone,
+        deliveryType:delivery,
+        address:$('address').value.trim(),
+        location:coords,
+        items,
+        notes:$('notes').value.trim(),
+        total
+      })
+    });
 
-      id: crypto.randomUUID(),
+    const o = d.order;
 
-      businessId:
-        req.business.id,
+    $('receipt').innerHTML = `
+      <div class="line"><span>Pedido</span><b>#${escapeHtml(o.id.slice(0,8))}</b></div>
+      <div class="line"><span>Cliente</span><b>${escapeHtml(name)}</b></div>
+      <div class="line"><span>Productos</span><b>${escapeHtml(items.map(x => x.quantity + ' × ' + x.name).join(', '))}</b></div>
+      <div class="line"><span>Delivery</span><b>${delivery === 'delivery' ? money(fee) : 'Recogida'}</b></div>
+      <div class="line"><span>Total</span><b>${money(total)}</b></div>
+    `;
 
-      businessName:
-        req.business.name,
+    $('result').classList.remove('hidden');
+    cart = {};
+    coords = null;
+    renderCart();
+    $('orderStatus').textContent = '✅ Pedido enviado al negocio.';
+    await loadOrders();
+    $('result').scrollIntoView({behavior:'smooth'});
+  } catch(e) {
+    $('orderStatus').textContent = '⚠️ ' + e.message;
+  } finally {
+    $('confirmBtn').disabled = false;
+  }
+}
+$('confirmBtn').onclick = confirmOrder;
 
-      customer:
-        String(customer).trim(),
+$('viewOrderBtn').onclick = () => {
+  $('pedidoCard').scrollIntoView({behavior:'smooth'});
+};
 
-      phone:
-        String(phone || "").trim(),
+function mapsFor(o) {
+  if (o.location?.lat) {
+    return 'https://www.google.com/maps/dir/?api=1&destination=' + o.location.lat + ',' + o.location.lng;
+  }
+  if (o.address) {
+    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(o.address);
+  }
+  return 'https://www.google.com/maps/';
+}
 
-      deliveryType:
-        deliveryType === "pickup"
-          ? "pickup"
-          : "delivery",
+function statusLabel(s) {
+  return ({
+    new:'Nuevo',
+    preparing:'Preparando',
+    on_the_way:'En camino',
+    delivered:'Entregado',
+    cancelled:'Cancelado'
+  })[s] || s;
+}
 
-      address:
-        String(address || "").trim(),
+async function setStatus(id,status) {
+  try {
+    await api('/api/orders/' + encodeURIComponent(id) + '/status', {
+      method:'PATCH',
+      body:JSON.stringify({status})
+    });
+    await loadOrders();
+  } catch(e) {
+    alert(e.message);
+  }
+}
 
-      location:
-        location || null,
+function renderDash() {
+  if (!orders.length) {
+    $('dashboard').innerHTML = '<p class="muted">Todavía no hay pedidos.</p>';
+    return;
+  }
 
-      items:
-        items.map(item => ({
-          name: String(item.name || ""),
-          quantity: Number(item.quantity || 0),
-          unitPrice: Number(item.unitPrice || 0)
-        })),
+  $('dashboard').innerHTML = orders.map(o => `
+    <div class="order">
+      <div class="line">
+        <b>Pedido #${escapeHtml(o.id.slice(0,8))} · ${escapeHtml(o.customer)}</b>
+        <select data-id="${escapeHtml(o.id)}" class="status">
+          ${['new','preparing','on_the_way','delivered','cancelled'].map(s =>
+            `<option value="${s}" ${s === o.status ? 'selected' : ''}>${statusLabel(s)}</option>`
+          ).join('')}
+        </select>
+      </div>
+      <p class="muted">${escapeHtml(o.phone || '')}<br>
+      ${escapeHtml((o.items || []).map(x => x.quantity + ' × ' + x.name).join(', '))}<br>
+      ${o.location ? escapeHtml(o.location.lat + ', ' + o.location.lng) : escapeHtml(o.address || 'Sin ubicación')}</p>
+      <b>${money(o.total)}</b>
+    </div>
+  `).join('');
 
-      notes:
-        String(notes || "").trim(),
+  document.querySelectorAll('.status').forEach(s => {
+    s.onchange = () => setStatus(s.dataset.id, s.value);
+  });
+}
 
-      total:
-        Number(total || 0),
+function renderDriver() {
+  const active = orders.filter(o => o.status === 'preparing' || o.status === 'on_the_way');
 
-      status:
-        "new",
+  if (!active.length) {
+    $('driverDashboard').innerHTML = '<p class="muted">No hay pedidos para entregar ahora.</p>';
+    return;
+  }
 
-      driverId:
-        null,
+  $('driverDashboard').innerHTML = active.map(o => `
+    <div class="order">
+      <b>Pedido #${escapeHtml(o.id.slice(0,8))} · ${escapeHtml(o.customer)}</b>
+      <p>${escapeHtml(o.address || (o.location ? o.location.lat + ', ' + o.location.lng : 'Sin ubicación'))}</p>
+      <p>${money(o.total)}</p>
+      <button type="button" class="primary nav" data-id="${escapeHtml(o.id)}">🗺️ Navegar</button>
+      <button type="button" class="green done" data-id="${escapeHtml(o.id)}">✅ Entregado</button>
+    </div>
+  `).join('');
 
-      createdAt:
-        now,
-
-      updatedAt:
-        now
+  document.querySelectorAll('.nav').forEach(b => {
+    b.onclick = () => {
+      const o = orders.find(x => x.id === b.dataset.id);
+      if (o) window.open(mapsFor(o), '_blank');
     };
+  });
 
-    orders.set(order.id, order);
+  document.querySelectorAll('.done').forEach(b => {
+    b.onclick = () => setStatus(b.dataset.id,'delivered');
+  });
+}
 
-    console.log(
-      "NUEVO PEDIDO:",
-      order.id,
-      "NEGOCIO:",
-      order.businessId
-    );
-
-    res.status(201).json({
-      ok: true,
-      order
-    });
+async function loadOrders() {
+  try {
+    const d = await api('/api/orders');
+    orders = Array.isArray(d.orders) ? d.orders : [];
+    renderDash();
+    renderDriver();
+  } catch(e) {
+    $('dashboard').innerHTML = '<p class="error">' + escapeHtml(e.message) + '</p>';
+    $('driverDashboard').innerHTML = '<p class="error">' + escapeHtml(e.message) + '</p>';
   }
-);
+}
 
+/* =========================
+   PANEL ADMIN
+========================= */
+function showAdminTab(tabId) {
+  document.querySelectorAll('.adminSection').forEach(s => s.classList.add('hidden'));
+  $(tabId).classList.remove('hidden');
 
-/* =========================================================
-   LISTAR PEDIDOS DEL NEGOCIO
-========================================================= */
+  document.querySelectorAll('.adminTab').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tabId);
+  });
+}
 
-app.get(
-  "/api/orders",
-  requireActiveBusiness,
-  (req, res) => {
+document.querySelectorAll('.adminTab').forEach(b => {
+  b.onclick = () => showAdminTab(b.dataset.tab);
+});
 
-    const list =
-      [...orders.values()]
-        .filter(
-          order =>
-            order.businessId ===
-            req.business.id
-        )
-        .sort(
-          (a, b) =>
-            b.createdAt.localeCompare(
-              a.createdAt
-            )
-        );
+function fillBusinessSelects() {
+  const options = adminBusinesses.map(b =>
+    `<option value="${escapeHtml(b.id)}">${escapeHtml(b.name)} (${escapeHtml(b.id)})</option>`
+  ).join('');
 
-    res.json({
-      ok: true,
-      orders: list
-    });
+  $('adminBusinessSelect').innerHTML = options;
+  $('productBusinessSelect').innerHTML = options;
+  $('driverBusinessSelect').innerHTML = options;
+
+  if (adminBusinesses.some(b => b.id === BUSINESS_ID)) {
+    $('adminBusinessSelect').value = BUSINESS_ID;
+    $('productBusinessSelect').value = BUSINESS_ID;
+    $('driverBusinessSelect').value = BUSINESS_ID;
   }
-);
+}
 
+function businessDateText(v) {
+  if (!v) return '—';
+  return new Date(v).toLocaleDateString('es-DO');
+}
 
-/* =========================================================
-   CAMBIAR ESTADO DEL PEDIDO
-========================================================= */
+async function loadAdminBusinesses() {
+  const d = await adminApi('/api/admin/businesses');
+  adminBusinesses = Array.isArray(d.businesses) ? d.businesses : [];
+  fillBusinessSelects();
 
-app.patch(
-  "/api/orders/:id/status",
-  requireActiveBusiness,
-  (req, res) => {
+  $('businessesList').innerHTML = adminBusinesses.length ? `
+    <table>
+      <thead><tr>
+        <th>Negocio</th><th>ID</th><th>Estado</th><th>Vencimiento</th><th>Acciones</th>
+      </tr></thead>
+      <tbody>
+        ${adminBusinesses.map(b => `
+          <tr>
+            <td><b>${escapeHtml(b.name)}</b><br><span class="small">${escapeHtml(b.whatsapp || '')}</span></td>
+            <td>${escapeHtml(b.id)}</td>
+            <td class="${b.active ? 'status-on':'status-off'}">${b.active ? 'ACTIVO':'SUSPENDIDO'}</td>
+            <td>${businessDateText(b.subscriptionExpiresAt)}</td>
+            <td>
+              <button class="soft selectBiz" data-id="${escapeHtml(b.id)}">Administrar</button>
+              <button class="${b.active ? 'danger':'green'} toggleSub" data-id="${escapeHtml(b.id)}" data-active="${b.active}">
+                ${b.active ? 'Suspender':'Activar'}
+              </button>
+              <button class="danger deleteBiz" data-id="${escapeHtml(b.id)}">Eliminar</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  ` : '<p class="muted">No hay negocios.</p>';
 
-    const order =
-      orders.get(req.params.id);
-
-    if (
-      !order ||
-      order.businessId !== req.business.id
-    ) {
-      return res.status(404).json({
-        ok: false,
-        message: "Pedido no encontrado."
-      });
-    }
-
-    const allowedStatuses = [
-      "new",
-      "preparing",
-      "on_the_way",
-      "delivered",
-      "cancelled"
-    ];
-
-    const status =
-      req.body?.status;
-
-    if (!allowedStatuses.includes(status)) {
-      return res.status(400).json({
-        ok: false,
-        message: "Estado no válido."
-      });
-    }
-
-    order.status =
-      status;
-
-    order.updatedAt =
-      new Date().toISOString();
-
-    orders.set(
-      order.id,
-      order
-    );
-
-    res.json({
-      ok: true,
-      order
-    });
-  }
-);
-
-
-/* =========================================================
-   ADMIN — NEGOCIOS
-========================================================= */
-
-app.get(
-  "/api/admin/businesses",
-  requireAdmin,
-  (_req, res) => {
-
-    const list =
-      [...businesses.values()]
-        .map(business => ({
-          ...business,
-          active:
-            businessIsActive(business)
-        }));
-
-    res.json({
-      ok: true,
-      businesses: list
-    });
-  }
-);
-
-
-/* =========================================================
-   ADMIN — CREAR NEGOCIO
-========================================================= */
-
-app.post(
-  "/api/admin/businesses",
-  requireAdmin,
-  (req, res) => {
-
-    const {
-      id,
-      name,
-      whatsapp,
-      phone,
-      address,
-      subscriptionExpiresAt
-    } = req.body || {};
-
-    if (!id || !name) {
-      return res.status(400).json({
-        ok: false,
-        message:
-          "ID y nombre del negocio son obligatorios."
-      });
-    }
-
-    const businessId =
-      String(id)
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9-_]/g, "-");
-
-    if (businesses.has(businessId)) {
-      return res.status(409).json({
-        ok: false,
-        message:
-          "Ya existe un negocio con ese ID."
-      });
-    }
-
-    const business = {
-
-      id:
-        businessId,
-
-      name:
-        String(name).trim(),
-
-      active:
-        true,
-
-      whatsapp:
-        String(whatsapp || "").trim(),
-
-      phone:
-        String(phone || "").trim(),
-
-      address:
-        String(address || "").trim(),
-
-      subscriptionExpiresAt:
-        subscriptionExpiresAt ||
-        "2099-12-31T23:59:59.000Z",
-
-      createdAt:
-        new Date().toISOString()
+  document.querySelectorAll('.selectBiz').forEach(btn => {
+    btn.onclick = () => {
+      const id = btn.dataset.id;
+      BUSINESS_ID = id;
+      history.replaceState(null,'','?businessId=' + encodeURIComponent(id));
+      $('adminBusinessSelect').value = id;
+      $('productBusinessSelect').value = id;
+      loadBusiness();
+      loadProducts();
+      loadOrders();
+      showAdminTab('productsTab');
+      loadAdminProducts();
     };
-
-    businesses.set(
-      business.id,
-      business
-    );
-
-    products.set(
-      business.id,
-      []
-    );
-
-    res.status(201).json({
-      ok: true,
-      business
-    });
-  }
-);
-
-
-/* =========================================================
-   ADMIN — MODIFICAR NEGOCIO
-========================================================= */
-
-app.patch(
-  "/api/admin/businesses/:id",
-  requireAdmin,
-  (req, res) => {
-
-    const business =
-      businesses.get(req.params.id);
-
-    if (!business) {
-      return res.status(404).json({
-        ok: false,
-        message: "Negocio no encontrado."
-      });
-    }
-
-    if (
-      typeof req.body?.name === "string" &&
-      req.body.name.trim()
-    ) {
-      business.name =
-        req.body.name.trim();
-    }
-
-    if (
-      typeof req.body?.whatsapp === "string"
-    ) {
-      business.whatsapp =
-        req.body.whatsapp.trim();
-    }
-
-    if (
-      typeof req.body?.phone === "string"
-    ) {
-      business.phone =
-        req.body.phone.trim();
-    }
-
-    if (
-      typeof req.body?.address === "string"
-    ) {
-      business.address =
-        req.body.address.trim();
-    }
-
-    if (
-      typeof req.body?.active === "boolean"
-    ) {
-      business.active =
-        req.body.active;
-    }
-
-    if (
-      req.body?.subscriptionExpiresAt
-    ) {
-      business.subscriptionExpiresAt =
-        req.body.subscriptionExpiresAt;
-    }
-
-    businesses.set(
-      business.id,
-      business
-    );
-
-    res.json({
-      ok: true,
-      business
-    });
-  }
-);
-
-
-/* =========================================================
-   ADMIN — SUSCRIPCIÓN
-========================================================= */
-
-app.post(
-  "/api/admin/businesses/:id/subscription",
-  requireAdmin,
-  (req, res) => {
-
-    const business =
-      businesses.get(req.params.id);
-
-    if (!business) {
-      return res.status(404).json({
-        ok: false,
-        message: "Negocio no encontrado."
-      });
-    }
-
-    if (
-      typeof req.body?.active === "boolean"
-    ) {
-      business.active =
-        req.body.active;
-    }
-
-    if (
-      req.body?.subscriptionExpiresAt
-    ) {
-      business.subscriptionExpiresAt =
-        req.body.subscriptionExpiresAt;
-    }
-
-    businesses.set(
-      business.id,
-      business
-    );
-
-    res.json({
-      ok: true,
-      business
-    });
-  }
-);
-
-
-/* =========================================================
-   ADMIN — PRODUCTOS
-========================================================= */
-
-app.get(
-  "/api/admin/products/:businessId",
-  requireAdmin,
-  (req, res) => {
-
-    if (!businesses.has(req.params.businessId)) {
-      return res.status(404).json({
-        ok: false,
-        message: "Negocio no encontrado."
-      });
-    }
-
-    res.json({
-      ok: true,
-      products:
-        products.get(req.params.businessId) || []
-    });
-  }
-);
-
-
-app.post(
-  "/api/admin/products/:businessId",
-  requireAdmin,
-  (req, res) => {
-
-    const businessId =
-      req.params.businessId;
-
-    if (!businesses.has(businessId)) {
-      return res.status(404).json({
-        ok: false,
-        message: "Negocio no encontrado."
-      });
-    }
-
-    const {
-      name,
-      price,
-      available
-    } = req.body || {};
-
-    if (
-      !name ||
-      Number.isNaN(Number(price))
-    ) {
-      return res.status(400).json({
-        ok: false,
-        message:
-          "Nombre y precio son obligatorios."
-      });
-    }
-
-    const list =
-      products.get(businessId) || [];
-
-    const product = {
-
-      id:
-        crypto.randomUUID(),
-
-      name:
-        String(name).trim(),
-
-      price:
-        Number(price),
-
-      available:
-        available !== false
-    };
-
-    list.push(product);
-
-    products.set(
-      businessId,
-      list
-    );
-
-    res.status(201).json({
-      ok: true,
-      product
-    });
-  }
-);
-
-
-app.patch(
-  "/api/admin/products/:businessId/:productId",
-  requireAdmin,
-  (req, res) => {
-
-    const list =
-      products.get(req.params.businessId);
-
-    if (!list) {
-      return res.status(404).json({
-        ok: false,
-        message: "Negocio no encontrado."
-      });
-    }
-
-    const product =
-      list.find(
-        p =>
-          p.id ===
-          req.params.productId
-      );
-
-    if (!product) {
-      return res.status(404).json({
-        ok: false,
-        message: "Producto no encontrado."
-      });
-    }
-
-    if (
-      typeof req.body?.name === "string"
-    ) {
-      product.name =
-        req.body.name.trim();
-    }
-
-    if (
-      req.body?.price !== undefined
-    ) {
-      product.price =
-        Number(req.body.price);
-    }
-
-    if (
-      typeof req.body?.available === "boolean"
-    ) {
-      product.available =
-        req.body.available;
-    }
-
-    products.set(
-      req.params.businessId,
-      list
-    );
-
-    res.json({
-      ok: true,
-      product
-    });
-  }
-);
-
-
-/* =========================================================
-   ADMIN — TODOS LOS PEDIDOS
-========================================================= */
-
-app.get(
-  "/api/admin/orders",
-  requireAdmin,
-  (_req, res) => {
-
-    const list =
-      [...orders.values()]
-        .sort(
-          (a, b) =>
-            b.createdAt.localeCompare(
-              a.createdAt
-            )
-        );
-
-    res.json({
-      ok: true,
-      orders: list
-    });
-  }
-);
-
-
-/* =========================================================
-   ADMIN — CAMBIAR ESTADO
-========================================================= */
-
-app.patch(
-  "/api/admin/orders/:id/status",
-  requireAdmin,
-  (req, res) => {
-
-    const order =
-      orders.get(req.params.id);
-
-    if (!order) {
-      return res.status(404).json({
-        ok: false,
-        message: "Pedido no encontrado."
-      });
-    }
-
-    const allowedStatuses = [
-      "new",
-      "preparing",
-      "on_the_way",
-      "delivered",
-      "cancelled"
-    ];
-
-    if (
-      !allowedStatuses.includes(
-        req.body?.status
-      )
-    ) {
-      return res.status(400).json({
-        ok: false,
-        message: "Estado no válido."
-      });
-    }
-
-    order.status =
-      req.body.status;
-
-    order.updatedAt =
-      new Date().toISOString();
-
-    orders.set(
-      order.id,
-      order
-    );
-
-    res.json({
-      ok: true,
-      order
-    });
-  }
-);
-
-
-/* =========================================================
-   ADMIN — REPARTIDORES
-========================================================= */
-
-app.get(
-  "/api/admin/drivers",
-  requireAdmin,
-  (_req, res) => {
-
-    res.json({
-      ok: true,
-      drivers:
-        [...drivers.values()]
-    });
-  }
-);
-
-
-app.post(
-  "/api/admin/drivers",
-  requireAdmin,
-  (req, res) => {
-
-    const {
-      businessId,
-      name,
-      whatsapp,
-      phone
-    } = req.body || {};
-
-    if (!businessId || !name) {
-      return res.status(400).json({
-        ok: false,
-        message:
-          "Negocio y nombre son obligatorios."
-      });
-    }
-
-    if (!businesses.has(businessId)) {
-      return res.status(404).json({
-        ok: false,
-        message:
-          "El negocio no existe."
-      });
-    }
-
-    const driver = {
-
-      id:
-        crypto.randomUUID(),
-
-      businessId,
-
-      name:
-        String(name).trim(),
-
-      whatsapp:
-        String(whatsapp || "").trim(),
-
-      phone:
-        String(phone || "").trim(),
-
-      active:
-        true,
-
-      createdAt:
-        new Date().toISOString()
-    };
-
-    drivers.set(
-      driver.id,
-      driver
-    );
-
-    res.status(201).json({
-      ok: true,
-      driver
-    });
-  }
-);
-
-
-/* =========================================================
-   ADMIN — ASIGNAR REPARTIDOR
-========================================================= */
-
-app.patch(
-  "/api/admin/orders/:id/driver",
-  requireAdmin,
-  (req, res) => {
-
-    const order =
-      orders.get(req.params.id);
-
-    if (!order) {
-      return res.status(404).json({
-        ok: false,
-        message: "Pedido no encontrado."
-      });
-    }
-
-    const driverId =
-      req.body?.driverId || null;
-
-    if (driverId) {
-
-      const driver =
-        drivers.get(driverId);
-
-      if (!driver) {
-        return res.status(404).json({
-          ok: false,
-          message:
-            "Repartidor no encontrado."
+  });
+
+  document.querySelectorAll('.toggleSub').forEach(btn => {
+    btn.onclick = async () => {
+      const active = btn.dataset.active !== 'true';
+      try {
+        await adminApi('/api/admin/businesses/' + encodeURIComponent(btn.dataset.id) + '/subscription', {
+          method:'POST',
+          body:JSON.stringify({
+            active,
+            subscriptionExpiresAt: adminBusinesses.find(b => b.id === btn.dataset.id)?.subscriptionExpiresAt
+          })
         });
-      }
+        await loadAdminBusinesses();
+        if (btn.dataset.id === BUSINESS_ID) await loadBusiness();
+      } catch(e) { alert(e.message); }
+    };
+  });
 
-      if (
-        driver.businessId !==
-        order.businessId
-      ) {
-        return res.status(400).json({
-          ok: false,
-          message:
-            "El repartidor pertenece a otro negocio."
-        });
-      }
-    }
+  document.querySelectorAll('.deleteBiz').forEach(btn => {
+    btn.onclick = async () => {
+      if (!confirm('¿Eliminar este negocio y sus productos/repartidores?')) return;
+      try {
+        await adminApi('/api/admin/businesses/' + encodeURIComponent(btn.dataset.id), {method:'DELETE'});
+        if (btn.dataset.id === BUSINESS_ID) {
+          BUSINESS_ID = adminBusinesses.find(b => b.id !== btn.dataset.id)?.id || 'anamuya-demo';
+          history.replaceState(null,'','?businessId=' + encodeURIComponent(BUSINESS_ID));
+        }
+        await loadAdminBusinesses();
+        await loadBusiness();
+        await loadProducts();
+      } catch(e) { alert(e.message); }
+    };
+  });
+}
 
-    order.driverId =
-      driverId;
+$('adminBusinessSelect').onchange = () => {
+  const id = $('adminBusinessSelect').value;
+  BUSINESS_ID = id;
+  history.replaceState(null,'','?businessId=' + encodeURIComponent(id));
+  $('productBusinessSelect').value = id;
+  loadBusiness();
+  loadProducts();
+  loadOrders();
+};
 
-    order.updatedAt =
-      new Date().toISOString();
+$('productBusinessSelect').onchange = loadAdminProducts;
 
-    orders.set(
-      order.id,
-      order
-    );
+async function loadAdminProducts() {
+  const id = $('productBusinessSelect').value;
+  if (!id) {
+    $('adminProductsList').innerHTML = '<p class="muted">Selecciona un negocio.</p>';
+    return;
+  }
 
-    res.json({
-      ok: true,
-      order
+  try {
+    const d = await adminApi('/api/admin/businesses/' + encodeURIComponent(id) + '/products');
+    const list = d.products || [];
+
+    $('adminProductsList').innerHTML = list.length ? `
+      <table>
+        <thead><tr><th>Producto</th><th>Precio</th><th>Disponible</th><th>Acciones</th></tr></thead>
+        <tbody>
+          ${list.map(p => `
+            <tr>
+              <td><input class="editName" data-id="${escapeHtml(p.id)}" value="${escapeHtml(p.name)}"></td>
+              <td><input class="editPrice" type="number" min="0" step="0.01" data-id="${escapeHtml(p.id)}" value="${Number(p.price)}"></td>
+              <td>
+                <button class="${p.available ? 'green':'danger'} toggleProduct" data-id="${escapeHtml(p.id)}" data-available="${p.available}">
+                  ${p.available ? 'Visible':'Oculto'}
+                </button>
+              </td>
+              <td>
+                <button class="primary saveProduct" data-id="${escapeHtml(p.id)}">Guardar</button>
+                <button class="danger deleteProduct" data-id="${escapeHtml(p.id)}">Quitar</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    ` : '<p class="muted">Este negocio todavía no tiene productos.</p>';
+
+    document.querySelectorAll('.saveProduct').forEach(btn => {
+      btn.onclick = async () => {
+        const id = btn.dataset.id;
+        const name = document.querySelector('.editName[data-id="' + id + '"]').value;
+        const price = document.querySelector('.editPrice[data-id="' + id + '"]').value;
+        try {
+          await adminApi('/api/admin/businesses/' + encodeURIComponent($('productBusinessSelect').value) + '/products/' + encodeURIComponent(id), {
+            method:'PATCH',
+            body:JSON.stringify({name,price})
+          });
+          await loadAdminProducts();
+          if ($('productBusinessSelect').value === BUSINESS_ID) await loadProducts();
+        } catch(e) { alert(e.message); }
+      };
     });
+
+    document.querySelectorAll('.toggleProduct').forEach(btn => {
+      btn.onclick = async () => {
+        try {
+          await adminApi('/api/admin/businesses/' + encodeURIComponent($('productBusinessSelect').value) + '/products/' + encodeURIComponent(btn.dataset.id), {
+            method:'PATCH',
+            body:JSON.stringify({available:btn.dataset.available !== 'true'})
+          });
+          await loadAdminProducts();
+          if ($('productBusinessSelect').value === BUSINESS_ID) await loadProducts();
+        } catch(e) { alert(e.message); }
+      };
+    });
+
+    document.querySelectorAll('.deleteProduct').forEach(btn => {
+      btn.onclick = async () => {
+        if (!confirm('¿Quitar este producto?')) return;
+        try {
+          await adminApi('/api/admin/businesses/' + encodeURIComponent($('productBusinessSelect').value) + '/products/' + encodeURIComponent(btn.dataset.id), {
+            method:'DELETE'
+          });
+          await loadAdminProducts();
+          if ($('productBusinessSelect').value === BUSINESS_ID) await loadProducts();
+        } catch(e) { alert(e.message); }
+      };
+    });
+  } catch(e) {
+    $('adminProductsList').innerHTML = '<p class="error">' + escapeHtml(e.message) + '</p>';
   }
-);
+}
 
+$('addProductBtn').onclick = async () => {
+  const businessId = $('productBusinessSelect').value;
+  const name = $('newProductName').value.trim();
+  const price = $('newProductPrice').value;
 
-/* =========================================================
-   SERVIDOR
-========================================================= */
-
-app.listen(
-  PORT,
-  "0.0.0.0",
-  () => {
-
-    console.log(
-      `ConectaRD AI 7.2 funcionando en puerto ${PORT}`
-    );
-
-    console.log(
-      "ADMIN_KEY:",
-      ADMIN_KEY
-        ? "CONFIGURADA"
-        : "NO CONFIGURADA"
-    );
-
-    console.log(
-      "OPENAI:",
-      OPENAI_API_KEY
-        ? "CONFIGURADA"
-        : "NO CONFIGURADA"
-    );
-
-    console.log(
-      "MODELO:",
-      OPENAI_MODEL
-    );
+  if (!businessId || !name || price === '') {
+    return alert('Selecciona un negocio, escribe producto y precio.');
   }
-);
-   
+
+  try {
+    await adminApi('/api/admin/businesses/' + encodeURIComponent(businessId) + '/products', {
+      method:'POST',
+      body:JSON.stringify({name,price,available:true})
+    });
+    $('newProductName').value = '';
+    $('newProductPrice').value = '';
+    await loadAdminProducts();
+    if (businessId === BUSINESS_ID) await loadProducts();
+  } catch(e) { alert(e.message); }
+};
+
+$('refreshProductsBtn').onclick = loadAdminProducts;
+$('refreshBusinessesBtn').onclick = loadAdminBusinesses;
+
+$('createBusinessBtn').onclick = async () => {
+  const id = $('newBusinessId').value.trim();
+  const name = $('newBusinessName').value.trim();
+  const whatsapp = $('newBusinessWhatsApp').value.trim();
+  const phone = $('newBusinessPhone').value.trim();
+  const date = $('newBusinessExpiry').value;
+
+  if (!id || !name) return alert('ID y nombre son obligatorios.');
+
+  const expiry = date ? new Date(date + 'T23:59:59').toISOString() : '2099-12-31T23:59:59.000Z';
+
+  try {
+    await adminApi('/api/admin/businesses', {
+      method:'POST',
+      body:JSON.stringify({id,name,whatsapp,phone,subscriptionExpiresAt:expiry})
+    });
+
+    $('newBusinessId').value = '';
+    $('newBusinessName').value = '';
+    $('newBusinessWhatsApp').value = '';
+    $('newBusinessPhone').value = '';
+    $('newBusinessExpiry').value = '';
+
+    await loadAdminBusinesses();
+    alert('✅ Negocio creado. Ahora puedes agregarle productos desde Productos.');
+  } catch(e) { alert(e.message); }
+};
+
+/* =========================
+   REPARTIDORES ADMIN
+========================= */
+async function loadAdminDrivers() {
+  try {
+    const d = await adminApi('/api/admin/drivers');
+    const list = d.drivers || [];
+
+    $('adminDriversList').innerHTML = list.length ? `
+      <table>
+        <thead><tr><th>Nombre</th><th>Negocio</th><th>WhatsApp</th><th>Estado</th><th>Acciones</th></tr></thead>
+        <tbody>
+          ${list.map(x => `
+            <tr>
+              <td>${escapeHtml(x.name)}</td>
+              <td>${escapeHtml(x.businessId)}</td>
+              <td>${escapeHtml(x.whatsapp || x.phone || '')}</td>
+              <td class="${x.active ? 'status-on':'status-off'}">${x.active ? 'Activo':'Inactivo'}</td>
+              <td>
+                <button class="soft toggleDriver" data-id="${escapeHtml(x.id)}" data-active="${x.active}">
+                  ${x.active ? 'Desactivar':'Activar'}
+                </button>
+                <button class="danger deleteDriver" data-id="${escapeHtml(x.id)}">Eliminar</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    ` : '<p class="muted">No hay repartidores.</p>';
+
+    document.querySelectorAll('.toggleDriver').forEach(btn => {
+      btn.onclick = async () => {
+        try {
+          await adminApi('/api/admin/drivers/' + encodeURIComponent(btn.dataset.id), {
+            method:'PATCH',
+            body:JSON.stringify({active:btn.dataset.active !== 'true'})
+          });
+          await loadAdminDrivers();
+        } catch(e) { alert(e.message); }
+      };
+    });
+
+    document.querySelectorAll('.deleteDriver').forEach(btn => {
+      btn.onclick = async () => {
+        if (!confirm('¿Eliminar este repartidor?')) return;
+        try {
+          await adminApi('/api/admin/drivers/' + encodeURIComponent(btn.dataset.id), {method:'DELETE'});
+          await loadAdminDrivers();
+        } catch(e) { alert(e.message); }
+      };
+    });
+  } catch(e) {
+    $('adminDriversList').innerHTML = '<p class="error">' + escapeHtml(e.message) + '</p>';
+  }
+}
+
+$('addDriverBtn').onclick = async () => {
+  const businessId = $('driverBusinessSelect').value;
+  const name = $('newDriverName').value.trim();
+  const whatsapp = $('newDriverWhatsApp').value.trim();
+  const phone = $('newDriverPhone').value.trim();
+
+  if (!businessId || !name) return alert('Selecciona negocio y nombre.');
+
+  try {
+    await adminApi('/api/admin/drivers', {
+      method:'POST',
+      body:JSON.stringify({businessId,name,whatsapp,phone})
+    });
+
+    $('newDriverName').value = '';
+    $('newDriverWhatsApp').value = '';
+    $('newDriverPhone').value = '';
+    await loadAdminDrivers();
+  } catch(e) { alert(e.message); }
+};
+
+$('refreshDriversBtn').onclick = loadAdminDrivers;
+
+/* =========================
+   LOGIN ADMIN
+========================= */
+async function adminLogin() {
+  const key = $('adminKey').value.trim();
+
+  if (!key) return alert('Escribe la clave de administrador.');
+
+  sessionStorage.setItem('conectard_admin_key', key);
+  $('adminStatus').textContent = 'Comprobando clave...';
+
+  try {
+    await loadAdminBusinesses();
+    await loadAdminDrivers();
+    $('adminPanel').classList.remove('hidden');
+    $('adminStatus').textContent = '✅ Administrador conectado.';
+    await loadAdminProducts();
+  } catch(e) {
+    sessionStorage.removeItem('conectard_admin_key');
+    $('adminPanel').classList.add('hidden');
+    $('adminStatus').textContent = '❌ ' + e.message;
+  }
+}
+
+$('adminLoginBtn').onclick = adminLogin;
+
+$('adminLogoutBtn').onclick = () => {
+  sessionStorage.removeItem('conectard_admin_key');
+  $('adminPanel').classList.add('hidden');
+  $('adminStatus').textContent = 'Sesión de administrador cerrada.';
+  $('adminKey').value = '';
+};
+
+/* =========================
+   BOOT
+========================= */
+async function boot() {
+  addChat('assistant','¡Hola! Soy la IA de ConectaRD. Puedo ayudarte con el menú, precios y recomendaciones.');
+
+  try {
+    const h = await fetch(API + '/health').then(r => r.json());
+    $('aiStatus').textContent = h.aiConfigured ? '✅ IA conectada' : '⚠️ IA no configurada';
+    $('connectionStatus').textContent = '✅ Backend conectado';
+  } catch(e) {
+    $('aiStatus').textContent = '❌ Backend sin conexión';
+    $('connectionStatus').textContent = '❌ Sin conexión';
+  }
+
+  await loadBusiness();
+  await loadProducts();
+  await loadOrders();
+
+  const savedKey = sessionStorage.getItem('conectard_admin_key');
+  if (savedKey) {
+    $('adminKey').value = savedKey;
+    adminLogin().catch(() => {});
+  }
+}
+
+boot();
+</script>
+</body>
+</html>
