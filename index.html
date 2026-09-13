@@ -258,32 +258,55 @@ function escapeHtml(v) {
 }
 
 async function api(path, options = {}) {
+
+  const controller = new AbortController();
+
+  const timeout = setTimeout(() => {
+    controller.abort();
+  }, 15000);
+
   const headers = {
-    'Content-Type':'application/json',
+    'Content-Type': 'application/json',
     'x-business-id': BUSINESS_ID,
     ...(options.headers || {})
   };
-  const r = await fetch(API + path, {...options, headers});
-  const data = await r.json().catch(() => ({ok:false,message:'Respuesta no válida'}));
-  if (!r.ok) throw new Error(data.message || data.error || 'Error de conexión');
-  return data;
-}
 
-function adminHeaders() {
-  const key = sessionStorage.getItem('conectard_admin_key') || '';
-  return {'x-admin-key': key};
-}
+  try {
 
-async function adminApi(path, options = {}) {
-  const headers = {
-    'Content-Type':'application/json',
-    ...adminHeaders(),
-    ...(options.headers || {})
-  };
-  const r = await fetch(API + path, {...options, headers});
-  const data = await r.json().catch(() => ({ok:false,message:'Respuesta no válida'}));
-  if (!r.ok) throw new Error(data.message || data.error || 'Error de administrador');
-  return data;
+    const r = await fetch(API + path, {
+      ...options,
+      headers,
+      signal: controller.signal
+    });
+
+    const data = await r.json().catch(() => ({
+      ok: false,
+      message: 'Respuesta no válida del servidor.'
+    }));
+
+    if (!r.ok) {
+      throw new Error(
+        data.message ||
+        data.error ||
+        'Error de conexión.'
+      );
+    }
+
+    return data;
+
+  } catch (e) {
+
+    if (e.name === 'AbortError') {
+      throw new Error(
+        'El servidor tardó demasiado en responder. Intenta nuevamente.'
+      );
+    }
+
+    throw e;
+
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 /* =========================
