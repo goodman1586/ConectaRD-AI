@@ -545,14 +545,19 @@ function statusLabel(s) {
   })[s] || s;
 }
 
-async function setStatus(id,status) {
+async function setStatus(id, status, deliveryCode) {
   try {
     await api('/api/orders/' + encodeURIComponent(id) + '/status', {
-      method:'PATCH',
-      body:JSON.stringify({status})
+      method: 'PATCH',
+      body: JSON.stringify({
+        status,
+        deliveryCode
+      })
     });
+
     await loadOrders();
-  } catch(e) {
+
+  } catch (e) {
     alert(e.message);
   }
 }
@@ -586,33 +591,172 @@ function renderDash() {
 }
 
 function renderDriver() {
-  const active = orders.filter(o => o.status === 'preparing' || o.status === 'on_the_way');
+
+  const active = orders.filter(o =>
+    o.status === 'preparing' ||
+    o.status === 'on_the_way'
+  );
 
   if (!active.length) {
-    $('driverDashboard').innerHTML = '<p class="muted">No hay pedidos para entregar ahora.</p>';
+    $('driverDashboard').innerHTML =
+      '<p class="muted">No hay pedidos para entregar ahora.</p>';
     return;
   }
 
-  $('driverDashboard').innerHTML = active.map(o => `
-    <div class="order">
-      <b>Pedido #${escapeHtml(o.id.slice(0,8))} · ${escapeHtml(o.customer)}</b>
-      <p>${escapeHtml(o.address || (o.location ? o.location.lat + ', ' + o.location.lng : 'Sin ubicación'))}</p>
-      <p>${money(o.total)}</p>
-      <button type="button" class="primary nav" data-id="${escapeHtml(o.id)}">🗺️ Navegar</button>
-      <button type="button" class="green done" data-id="${escapeHtml(o.id)}">✅ Entregado</button>
-    </div>
-  `).join('');
+  $('driverDashboard').innerHTML = active.map(o => {
 
-  document.querySelectorAll('.nav').forEach(b => {
-    b.onclick = () => {
-      const o = orders.find(x => x.id === b.dataset.id);
-      if (o) window.open(mapsFor(o), '_blank');
+    const phone = String(o.phone || '')
+      .replace(/\D/g, '');
+
+    let whatsappNumber = phone;
+
+    if (whatsappNumber.length === 10) {
+      whatsappNumber = '1' + whatsappNumber;
+    }
+
+    const whatsappUrl = whatsappNumber
+      ? 'https://wa.me/' + whatsappNumber
+      : '';
+
+    return `
+      <div class="order">
+
+        <b>
+          Pedido #${escapeHtml(o.id.slice(0,8))}
+          · ${escapeHtml(o.customer)}
+        </b>
+
+        <p>
+          📞 ${escapeHtml(o.phone || 'Sin WhatsApp')}
+        </p>
+
+        <p>
+          📍 ${escapeHtml(
+            o.address ||
+            (o.location
+              ? o.location.lat + ', ' + o.location.lng
+              : 'Sin ubicación')
+          )}
+        </p>
+
+        <p>
+          💰 ${money(o.total)}
+        </p>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+
+          ${
+            whatsappUrl
+              ? `
+                <button
+                  type="button"
+                  class="green whatsapp"
+                  data-url="${escapeHtml(whatsappUrl)}">
+                  💬 WhatsApp
+                </button>
+              `
+              : ''
+          }
+
+          <button
+            type="button"
+            class="primary nav"
+            data-id="${escapeHtml(o.id)}">
+            🗺️ Navegar
+          </button>
+
+          <button
+            type="button"
+            class="green done"
+            data-id="${escapeHtml(o.id)}">
+            🔐 Confirmar entrega
+          </button>
+
+        </div>
+
+      </div>
+    `;
+
+  }).join('');
+
+  /* =========================
+     WHATSAPP CLIENTE
+  ========================= */
+
+  document.querySelectorAll('.whatsapp').forEach(btn => {
+
+    btn.onclick = () => {
+      window.open(
+        btn.dataset.url,
+        '_blank'
+      );
     };
+
   });
 
-  document.querySelectorAll('.done').forEach(b => {
-    b.onclick = () => setStatus(b.dataset.id,'delivered');
+  /* =========================
+     GOOGLE MAPS
+  ========================= */
+
+  document.querySelectorAll('.nav').forEach(btn => {
+
+    btn.onclick = () => {
+
+      const o = orders.find(
+        x => x.id === btn.dataset.id
+      );
+
+      if (o) {
+        window.open(
+          mapsFor(o),
+          '_blank'
+        );
+      }
+
+    };
+
   });
+
+  /* =========================
+     CONFIRMAR ENTREGA
+  ========================= */
+
+  document.querySelectorAll('.done').forEach(btn => {
+
+    btn.onclick = async () => {
+
+      const code = prompt(
+        '🔐 Introduce el código de entrega de 4 dígitos que te dio el cliente:'
+      );
+
+      if (code === null) {
+        return;
+      }
+
+      const cleanCode = String(code).trim();
+
+      if (!/^\d{4}$/.test(cleanCode)) {
+
+        alert(
+          'El código debe tener exactamente 4 dígitos.'
+        );
+
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Verificando...';
+
+      await setStatus(
+        btn.dataset.id,
+        'delivered',
+        cleanCode
+      );
+
+    };
+
+  });
+
 }
 
 async function loadOrders() {
