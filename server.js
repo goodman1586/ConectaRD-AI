@@ -1107,6 +1107,48 @@ app.patch(
     }
   }
 );
+// ============================================================
+// ADMIN – LISTAR NEGOCIOS
+// ============================================================
+
+app.get(
+  "/api/admin/businesses",
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT
+          id,
+          name,
+          active,
+          whatsapp,
+          phone,
+          subscription_expires_at,
+          created_at,
+          updated_at
+        FROM businesses
+        ORDER BY created_at DESC
+      `);
+
+      return res.status(200).json({
+        ok: true,
+        businesses: result.rows
+      });
+
+    } catch (error) {
+      console.error("Error listando negocios:", error);
+
+      return res.status(500).json({
+        ok: false,
+        message: "Error obteniendo negocios."
+      });
+    }
+  }
+);
+
+
+
+// ============================================================
 /* =========================================================
    ADMIN — CREAR NEGOCIO
 ========================================================= */
