@@ -1130,10 +1130,33 @@ app.get(
         ORDER BY created_at DESC
       `);
 
-      return res.status(200).json({
-        ok: true,
-        businesses: result.rows
-      });
+      const businesses = result.rows.map(row => ({
+  id: row.id,
+  name: row.name,
+  active: row.active,
+  whatsapp: row.whatsapp || "",
+  phone: row.phone || "",
+
+  subscriptionExpiresAt:
+    row.subscription_expires_at
+      ? new Date(row.subscription_expires_at).toISOString()
+      : null,
+
+  createdAt:
+    row.created_at
+      ? new Date(row.created_at).toISOString()
+      : null,
+
+  updatedAt:
+    row.updated_at
+      ? new Date(row.updated_at).toISOString()
+      : null
+}));
+
+return res.status(200).json({
+  ok: true,
+  businesses
+});
 
     } catch (error) {
       console.error("Error listando negocios:", error);
