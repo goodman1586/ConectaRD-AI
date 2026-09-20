@@ -1199,23 +1199,6 @@ await adminApi('/api/admin/products/' + encodeURIComponent(id), {
 
 /* =========================
    AGREGAR PRODUCTO
-========================= */
-
-$('addProductBtn').onclick = async () => {
-  const businessId = $('productBusinessSelect').value;
-  const name = $('newProductName').value.trim();
-  const price = $('newProductPrice').value;
-
-  if (!businessId || !name || price === '') {
-    return alert('Selecciona un negocio, escribe producto y precio.');
-  }
-
-  try {
-    await adminApi('/api/admin/businesses/' + encodeURIComponent(businessId) + '/products', {
-      method:'POST',
-      body:JSON.stringify({name,price,available:true})
-/* =========================
-   AGREGAR PRODUCTO
    ========================= */
 
 $('addProductBtn').onclick = async () => {
