@@ -1272,8 +1272,9 @@ app.post(
       }
 
       const expires =
-        subscriptionExpiresAt ||
-        "2099-12-31T23:59:59.000Z";
+  subscriptionExpiresAt ||
+  req.body.subscription_expires_at ||
+  "2099-12-31T23:59:59.000Z";
 
       const result =
         await pool.query(
