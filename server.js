@@ -362,7 +362,7 @@ app.get(
    PRODUCTOS PÚBLICOS
 ========================================================= */
 
-app.get(
+/api/businesses
   "/api/products",
   requireActiveBusiness,
   async (req, res) => {
