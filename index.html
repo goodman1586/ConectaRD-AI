@@ -1013,7 +1013,7 @@ $('adminBusinessSelect').onchange = () => {
 
 $('productBusinessSelect').onchange = loadAdminProducts;
 async function loadAdminProducts() {
-  const id = $('#productBusinessSelect').value;
+  const id = $('productBusinessSelect').value;
 
   if (!id) {
     $('#adminProductsList').innerHTML =
@@ -1141,7 +1141,7 @@ await adminApi('/api/admin/products/' + encodeURIComponent(id), {
 
       await loadAdminProducts();
 
-      if ($('#productBusinessSelect').value === BUSINESS_ID) {
+      if ($('productBusinessSelect').value === BUSINESS_ID) {
         await loadProducts();
       }
 
@@ -1173,7 +1173,7 @@ await adminApi('/api/admin/products/' + encodeURIComponent(id), {
 
           await adminApi(
             '/api/admin/businesses/' +
-              encodeURIComponent($('#productBusinessSelect').value) +
+              encodeURIComponent($('productBusinessSelect').value) +
               '/products/' +
               encodeURIComponent(id),
             {
@@ -1186,7 +1186,7 @@ await adminApi('/api/admin/products/' + encodeURIComponent(id), {
 
           await loadAdminProducts();
 
-          if ($('#productBusinessSelect').value === BUSINESS_ID) {
+          if ($('productBusinessSelect').value === BUSINESS_ID) {
             await loadProducts();
           }
         } catch (e) {
