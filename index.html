@@ -279,10 +279,17 @@ async function api(path, options = {}) {
       signal: controller.signal
     });
 
-    const data = await r.json().catch(() => ({
-      ok: false,
-      message: 'Respuesta no válida del servidor.'
-    }));
+    const text = await r.text();
+
+let data;
+
+try {
+  data = JSON.parse(text);
+} catch (e) {
+  throw new Error(
+    `Servidor respondió ${r.status}: ${text.slice(0, 300)}`
+  );
+}
 
     if (!r.ok) {
       throw new Error(
