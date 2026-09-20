@@ -1196,6 +1196,11 @@ await adminApi('/api/admin/products/' + encodeURIComponent(id), {
         }
       };
     });
+      } catch (e) {
+    $('adminProductsList').innerHTML =
+      '<p class="error">' + escapeHtml(e.message) + '</p>';
+  }
+}
 
 /* =========================
    AGREGAR PRODUCTO
