@@ -1012,86 +1012,200 @@ $('adminBusinessSelect').onchange = () => {
 };
 
 $('productBusinessSelect').onchange = loadAdminProducts;
-
 async function loadAdminProducts() {
-  const id = $('productBusinessSelect').value;
+  const id = $('#productBusinessSelect').value;
+
   if (!id) {
-    $('adminProductsList').innerHTML = '<p class="muted">Selecciona un negocio.</p>';
+    $('#adminProductsList').innerHTML =
+      '<p class="muted">Selecciona un negocio.</p>';
     return;
   }
 
   try {
-    const d = await adminApi('/api/admin/businesses/' + encodeURIComponent(id) + '/products');
-    const list = d.products || [];
+    const d = await adminApi(
+      '/api/admin/businesses/' + encodeURIComponent(id) + '/products'
+    );
 
-    $('adminProductsList').innerHTML = list.length ? `
-      <table>
-        <thead><tr><th>Producto</th><th>Precio</th><th>Disponible</th><th>Acciones</th></tr></thead>
-        <tbody>
-          ${list.map(p => `
+    const list = Array.isArray(d.products) ? d.products : [];
+
+    $('#adminProductsList').innerHTML = list.length
+      ? `
+        <table>
+          <thead>
             <tr>
-              <td><input class="editName" data-id="${escapeHtml(p.id)}" value="${escapeHtml(p.name)}"></td>
-              <td><input class="editPrice" type="number" min="0" step="0.01" data-id="${escapeHtml(p.id)}" value="${Number(p.price)}"></td>
-              <td>
-                <button class="${p.available ? 'green':'danger'} toggleProduct" data-id="${escapeHtml(p.id)}" data-available="${p.available}">
-                  ${p.available ? 'Visible':'Oculto'}
-                </button>
-              </td>
-              <td>
-                <button class="primary saveProduct" data-id="${escapeHtml(p.id)}">Guardar</button>
-                <button class="danger deleteProduct" data-id="${escapeHtml(p.id)}">Quitar</button>
-              </td>
+              <th>Producto</th>
+              <th>Precio</th>
+              <th>Disponible</th>
+              <th>Acciones</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    ` : '<p class="muted">Este negocio todavía no tiene productos.</p>';
+          </thead>
 
-    document.querySelectorAll('.saveProduct').forEach(btn => {
-      btn.onclick = async () => {
-        const id = btn.dataset.id;
-        const name = document.querySelector('.editName[data-id="' + id + '"]').value;
-        const price = document.querySelector('.editPrice[data-id="' + id + '"]').value;
-        try {
-          await adminApi('/api/admin/businesses/' + encodeURIComponent($('productBusinessSelect').value) + '/products/' + encodeURIComponent(id), {
-            method:'PATCH',
-            body:JSON.stringify({name,price})
-          });
-          await loadAdminProducts();
-          if ($('productBusinessSelect').value === BUSINESS_ID) await loadProducts();
-        } catch(e) { alert(e.message); }
-      };
-    });
+          <tbody>
+            ${list.map(p => `
+              <tr>
+                <td>
+                  <input
+                    class="editName"
+                    data-id="${escapeHtml(p.id)}"
+                    value="${escapeHtml(p.name || '')}"
+                  >
+                </td>
+
+                <td>
+                  <input
+                    class="editPrice"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    data-id="${escapeHtml(p.id)}"
+                    value="${Number(p.price || 0)}"
+                  >
+                </td>
+
+                <td>
+                  <button
+                    class="${p.available ? 'green' : 'danger'} toggleProduct"
+                    data-id="${escapeHtml(p.id)}"
+                    data-available="${p.available ? 'true' : 'false'}"
+                  >
+                    ${p.available ? 'Visible' : 'Oculto'}
+                  </button>
+                </td>
+
+                <td>
+                  <button
+                    class="primary saveProduct"
+                    data-id="${escapeHtml(p.id)}"
+                  >
+                    Guardar
+                  </button>
+
+                  <button
+                    class="danger deleteProduct"
+                    data-id="${escapeHtml(p.id)}"
+                  >
+                    Quitar
+                  </button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `
+      : '<p class="muted">Este negocio todavía no tiene productos.</p>';
+
+    /* =========================
+       GUARDAR PRODUCTO
+       ========================= */
+
+document.querySelectorAll('.saveProduct').forEach(btn => {
+  btn.onclick = async () => {
+    const id = btn.dataset.id;
+
+    const nameInput = document.querySelector(
+      `.editName[data-id="${CSS.escape(id)}"]`
+    );
+
+    const priceInput = document.querySelector(
+      `.editPrice[data-id="${CSS.escape(id)}"]`
+    );
+
+    if (!nameInput || !priceInput) {
+      alert('No se encontró el producto.');
+      return;
+    }
+
+    const name = nameInput.value.trim();
+    const price = Number(priceInput.value);
+
+    if (!name) {
+      alert('Escribe el nombre del producto.');
+      return;
+    }
+
+    if (!Number.isFinite(price) || price < 0) {
+      alert('Escribe un precio válido.');
+      return;
+    }
+
+    try {
+      btn.disabled = true;
+
+      await adminApi(
+        '/api/admin/businesses/' +
+        encodeURIComponent($('#productBusinessSelect').value) +
+        '/products/' +
+        encodeURIComponent(id),
+        {
+          method: 'PATCH',
+          body: JSON.stringify({
+            name: name,
+            price: price
+          })
+        }
+      );
+
+      await loadAdminProducts();
+
+      if ($('#productBusinessSelect').value === BUSINESS_ID) {
+        await loadProducts();
+      }
+
+      alert('Producto actualizado correctamente.');
+
+    } catch (e) {
+      alert(
+        e.message ||
+        'No se pudo actualizar el producto.'
+      );
+
+    } finally {
+      btn.disabled = false;
+    }
+  };
+});
+
+    /* =========================
+       MOSTRAR / OCULTAR PRODUCTO
+       ========================= */
 
     document.querySelectorAll('.toggleProduct').forEach(btn => {
       btn.onclick = async () => {
+        const id = btn.dataset.id;
+        const actual = btn.dataset.available === 'true';
+
         try {
-          await adminApi('/api/admin/businesses/' + encodeURIComponent($('productBusinessSelect').value) + '/products/' + encodeURIComponent(btn.dataset.id), {
-            method:'PATCH',
-            body:JSON.stringify({available:btn.dataset.available !== 'true'})
-          });
+          btn.disabled = true;
+
+          await adminApi(
+            '/api/admin/businesses/' +
+              encodeURIComponent($('#productBusinessSelect').value) +
+              '/products/' +
+              encodeURIComponent(id),
+            {
+              method: 'PATCH',
+              body: JSON.stringify({
+                available: !actual
+              })
+            }
+          );
+
           await loadAdminProducts();
-          if ($('productBusinessSelect').value === BUSINESS_ID) await loadProducts();
-        } catch(e) { alert(e.message); }
+
+          if ($('#productBusinessSelect').value === BUSINESS_ID) {
+            await loadProducts();
+          }
+        } catch (e) {
+          alert(e.message || 'No se pudo cambiar la visibilidad.');
+        } finally {
+          btn.disabled = false;
+        }
       };
     });
 
-    document.querySelectorAll('.deleteProduct').forEach(btn => {
-      btn.onclick = async () => {
-        if (!confirm('¿Quitar este producto?')) return;
-        try {
-          await adminApi('/api/admin/businesses/' + encodeURIComponent($('productBusinessSelect').value) + '/products/' + encodeURIComponent(btn.dataset.id), {
-            method:'DELETE'
-          });
-          await loadAdminProducts();
-          if ($('productBusinessSelect').value === BUSINESS_ID) await loadProducts();
-        } catch(e) { alert(e.message); }
-      };
-    });
-  } catch(e) {
-    $('adminProductsList').innerHTML = '<p class="error">' + escapeHtml(e.message) + '</p>';
-  }
-}
+/* =========================
+   AGREGAR PRODUCTO
+========================= */
 
 $('addProductBtn').onclick = async () => {
   const businessId = $('productBusinessSelect').value;
