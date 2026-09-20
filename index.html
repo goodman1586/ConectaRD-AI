@@ -373,17 +373,23 @@ async function loadProducts() {
     renderProducts();
     renderCart();
   } catch(e) {
-    $('products').innerHTML = '<p class="error">' + escapeHtml(e.message) + '</p>';
+    const el = $('products');
+if (el) {
+  el.innerHTML = '<p class="error">' + escapeHtml(e.message) + '</p>';
+}
   }
 }
 
 function renderProducts() {
+  const el = $('products');
+  if (!el) return;
+
   if (!productsData.length) {
-    $('products').innerHTML = '<p class="muted">No hay productos disponibles.</p>';
+    el.innerHTML = '<p class="muted">No hay productos disponibles.</p>';
     return;
   }
 
-  $('products').innerHTML = productsData.map(p => `
+  el.innerHTML = productsData.map(p =>
     <div class="product">
       <b>${escapeHtml(p.name)}</b>
       <div class="price">${money(p.price)}</div>
