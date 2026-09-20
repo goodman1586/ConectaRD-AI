@@ -1169,7 +1169,64 @@ return res.status(200).json({
   }
 );
 
+// ===============================================
+// ADMIN — ELIMINAR NEGOCIO
+// ===============================================
 
+app.delete(
+  "/api/admin/businesses/:id",
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const businessId = String(req.params.id || "").trim();
+
+      if (!businessId) {
+        return res.status(400).json({
+          ok: false,
+          message: "ID del negocio es obligatorio."
+        });
+      }
+
+      // Verificar que el negocio existe
+      const exists = await pool.query(
+        "SELECT id FROM businesses WHERE id = $1",
+        [businessId]
+      );
+
+      if (exists.rows.length === 0) {
+        return res.status(404).json({
+          ok: false,
+          message: "Negocio no encontrado."
+        });
+      }
+
+      // Eliminar productos asociados al negocio
+      await pool.query(
+        "DELETE FROM products WHERE business_id = $1",
+        [businessId]
+      );
+
+      // Eliminar el negocio
+      await pool.query(
+        "DELETE FROM businesses WHERE id = $1",
+        [businessId]
+      );
+
+      return res.status(200).json({
+        ok: true,
+        message: "Negocio eliminado correctamente."
+      });
+
+    } catch (error) {
+      console.error("Error eliminando negocio:", error);
+
+      return res.status(500).json({
+        ok: false,
+        message: "Error eliminando negocio."
+      });
+    }
+  }
+);
 
 // ============================================================
 /* =========================================================
