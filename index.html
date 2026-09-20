@@ -315,7 +315,42 @@ try {
     clearTimeout(timeout);
   }
 }
+function adminHeaders() {
+  const key =
+    sessionStorage.getItem('conectard_admin_key') || '';
 
+  return {
+    'x-admin-key': key
+  };
+}
+
+async function adminApi(path, options = {}) {
+  const headers = {
+    'Content-Type': 'application/json',
+    ...adminHeaders(),
+    ...(options.headers || {})
+  };
+
+  const r = await fetch(API + path, {
+    ...options,
+    headers
+  });
+
+  const data = await r.json().catch(() => ({
+    ok: false,
+    message: 'Respuesta no válida'
+  }));
+
+  if (!r.ok) {
+    throw new Error(
+      data.message ||
+      data.error ||
+      'Error de administrador'
+    );
+  }
+
+  return data;
+}
 /* =========================
    NEGOCIO / CATÁLOGO
 ========================= */
