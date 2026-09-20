@@ -1131,19 +1131,13 @@ document.querySelectorAll('.saveProduct').forEach(btn => {
     try {
       btn.disabled = true;
 
-      await adminApi(
-        '/api/admin/businesses/' +
-        encodeURIComponent($('#productBusinessSelect').value) +
-        '/products/' +
-        encodeURIComponent(id),
-        {
-          method: 'PATCH',
-          body: JSON.stringify({
-            name: name,
-            price: price
-          })
-        }
-      );
+await adminApi('/api/admin/products/' + encodeURIComponent(id), {
+  method: 'PATCH',
+  body: JSON.stringify({
+    name: name,
+    price: price
+  })
+});
 
       await loadAdminProducts();
 
@@ -1220,16 +1214,63 @@ $('addProductBtn').onclick = async () => {
     await adminApi('/api/admin/businesses/' + encodeURIComponent(businessId) + '/products', {
       method:'POST',
       body:JSON.stringify({name,price,available:true})
-    });
+/* =========================
+   AGREGAR PRODUCTO
+   ========================= */
+
+$('addProductBtn').onclick = async () => {
+  const businessId = $('productBusinessSelect').value;
+  const name = $('newProductName').value.trim();
+  const price = $('newProductPrice').value;
+
+  if (!businessId || !name || price === '') {
+    return alert('Selecciona un negocio, escribe producto y precio.');
+  }
+
+  try {
+    await adminApi(
+      '/api/admin/businesses/' +
+      encodeURIComponent(businessId) +
+      '/products',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          name,
+          price,
+          available: true
+        })
+      }
+    );
+
     $('newProductName').value = '';
     $('newProductPrice').value = '';
+
     await loadAdminProducts();
-    if (businessId === BUSINESS_ID) await loadProducts();
-  } catch(e) { alert(e.message); }
+
+    if (businessId === BUSINESS_ID) {
+      await loadProducts();
+    }
+
+    alert('✅ Producto agregado correctamente.');
+
+  } catch (e) {
+    alert(e.message || 'No se pudo agregar el producto.');
+  }
 };
 
+
+/* =========================
+   ACTUALIZAR LISTAS
+   ========================= */
+
 $('refreshProductsBtn').onclick = loadAdminProducts;
+
 $('refreshBusinessesBtn').onclick = loadAdminBusinesses;
+
+
+/* =========================
+   CREAR NEGOCIO
+   ========================= */
 
 $('createBusinessBtn').onclick = async () => {
   const id = $('newBusinessId').value.trim();
@@ -1238,15 +1279,25 @@ $('createBusinessBtn').onclick = async () => {
   const phone = $('newBusinessPhone').value.trim();
   const date = $('newBusinessExpiry').value;
 
-  if (!id || !name) return alert('ID y nombre son obligatorios.');
+  if (!id || !name) {
+    return alert('ID y nombre son obligatorios.');
+  }
 
-  const expiry = date ? new Date(date + 'T23:59:59').toISOString() : '2099-12-31T23:59:59.000Z';
+  const expiry = date
+    ? new Date(date + 'T23:59:59').toISOString()
+    : '2099-12-31T23:59:59.000Z';
 
   try {
     await adminApi('/api/admin/businesses', {
-      method:'POST',
-      body:JSON.stringify({id,name,whatsapp,phone,subscriptionExpiresAt:expiry})
-    });
+      method: 'POST',
+      body: JSON.stringify({
+        id,
+        name,
+        whatsapp,
+        phone,
+        subscriptionExpiresAt: expiry
+      })
+    );
 
     $('newBusinessId').value = '';
     $('newBusinessName').value = '';
@@ -1255,10 +1306,15 @@ $('createBusinessBtn').onclick = async () => {
     $('newBusinessExpiry').value = '';
 
     await loadAdminBusinesses();
-    alert('✅ Negocio creado. Ahora puedes agregarle productos desde Productos.');
-  } catch(e) { alert(e.message); }
-};
 
+    alert(
+      '✅ Negocio creado. Ahora puedes agregarle productos desde Productos.'
+    );
+
+  } catch (e) {
+    alert(e.message || 'No se pudo crear el negocio.');
+  }
+};
 /* =========================
    REPARTIDORES ADMIN
 ========================= */
