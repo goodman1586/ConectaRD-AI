@@ -1171,18 +1171,17 @@ await adminApi('/api/admin/products/' + encodeURIComponent(id), {
         try {
           btn.disabled = true;
 
-          await adminApi(
-            '/api/admin/businesses/' +
-              encodeURIComponent($('productBusinessSelect').value) +
-              '/products/' +
-              encodeURIComponent(id),
-            {
-              method: 'PATCH',
-              body: JSON.stringify({
-                available: !actual
-              })
-            }
-          );
+      await adminApi(
+  '/api/admin/products/' +
+    encodeURIComponent(id) +
+    '/availability',
+  {
+    method: 'PATCH',
+    body: JSON.stringify({
+      available: !actual
+    })
+  }
+);
 
           await loadAdminProducts();
 
