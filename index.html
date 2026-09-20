@@ -1200,6 +1200,37 @@ await adminApi('/api/admin/products/' + encodeURIComponent(id), {
       '<p class="error">' + escapeHtml(e.message) + '</p>';
   }
 }
+  document.querySelectorAll('.deleteProduct').forEach(btn => {
+  btn.onclick = async () => {
+    const id = btn.dataset.id;
+
+    if (!confirm('¿Eliminar este producto?')) return;
+
+    try {
+      btn.disabled = true;
+
+      await adminApi(
+        '/api/admin/products/' + encodeURIComponent(id),
+        {
+          method: 'DELETE'
+        }
+      );
+
+      await loadAdminProducts();
+
+      if ($('productBusinessSelect').value === BUSINESS_ID) {
+        await loadProducts();
+      }
+
+      alert('✅ Producto eliminado correctamente.');
+
+    } catch (e) {
+      alert(e.message || 'No se pudo eliminar el producto.');
+    } finally {
+      btn.disabled = false;
+    }
+  };
+});
 
 /* =========================
    AGREGAR PRODUCTO
