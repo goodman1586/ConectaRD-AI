@@ -1039,7 +1039,13 @@ async function loadAdminProducts() {
 
     const list = Array.isArray(d.products) ? d.products : [];
 
-    $('#adminProductsList').innerHTML = list.length
+    const adminProductsList = $('adminProductsList');
+if (!adminProductsList) {
+  console.error('No existe #adminProductsList');
+  return;
+}
+
+adminProductsList.innerHTML = list.length
       ? `
         <table>
           <thead>
