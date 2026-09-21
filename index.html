@@ -389,16 +389,21 @@ function renderProducts() {
     return;
   }
 
-  392:   el.innerHTML = productsData.map(p => `
-393:     <div class="product">
-394:       <b>${escapeHtml(p.name)}</b>
-395:       <div class="price">${money(p.price)}</div>
-396:       <button type="button" class="soft add" data-id="${escapeHtml(p.id)}">Agregar al carrito</button>
-397:     </div>
-398:   `).join('');
+  el.innerHTML = productsData.map(p => `
+    <div class="product">
+      <b>${escapeHtml(p.name)}</b>
+      <div class="price">${money(p.price)}</div>
+      <button
+        type="button"
+        class="soft add"
+        data-id="${escapeHtml(p.id)}">
+        Agregar al carrito
+      </button>
+    </div>
+  `).join('');
 
-  document.querySelectorAll('.add').forEach(b => {
-    b.onclick = () => add(b.dataset.id);
+  document.querySelectorAll('.add').forEach(button => {
+    button.onclick = () => add(button.dataset.id);
   });
 }
 
