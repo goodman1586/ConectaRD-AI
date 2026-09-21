@@ -1228,9 +1228,9 @@ app.delete(
   }
 );
 
-// ============================================================
 /* =========================================================
    ADMIN — CREAR NEGOCIO
+   VERSION 8.0
 ========================================================= */
 
 app.post(
@@ -1238,32 +1238,57 @@ app.post(
   requireAdmin,
   async (req, res) => {
     try {
+
       const {
-        name,
         id,
+        name,
         whatsapp,
         phone,
         subscriptionExpiresAt
       } = req.body || {};
 
-      if (!clean(name) || !clean(id)) {
+      // -----------------------------
+      // VALIDAR DATOS
+      // -----------------------------
+
+      const businessId = clean(id);
+      const businessName = clean(name);
+      const businessWhatsApp = clean(whatsapp);
+      const businessPhone = clean(phone);
+
+      if (!businessId || !businessName) {
         return res.status(400).json({
           ok: false,
-          message:
-            "Nombre e ID del negocio son obligatorios."
+          message: "ID y nombre del negocio son obligatorios."
         });
       }
 
-      const businessId =
-        clean(id);
+      // -----------------------------
+      // VALIDAR ID
+      // -----------------------------
 
-      const exists =
-        await pool.query(
-          `SELECT id FROM businesses WHERE id = $1`,
-          [businessId]
-        );
+      if (!/^[a-zA-Z0-9_-]+$/.test(businessId)) {
+        return res.status(400).json({
+          ok: false,
+          message:
+            "El ID solo puede contener letras, números, guion y guion bajo."
+        });
+      }
 
-      if (exists.rows.length) {
+      // -----------------------------
+      // COMPROBAR SI YA EXISTE
+      // -----------------------------
+
+      const exists = await pool.query(
+        `
+        SELECT id
+        FROM businesses
+        WHERE id = $1
+        `,
+        [businessId]
+      );
+
+      if (exists.rows.length > 0) {
         return res.status(409).json({
           ok: false,
           message:
@@ -1271,41 +1296,70 @@ app.post(
         });
       }
 
-      const expires =
-  subscriptionExpiresAt ||
-  req.body.subscription_expires_at ||
-  "2099-12-31T23:59:59.000Z";
+      // -----------------------------
+      // FECHA DE VENCIMIENTO
+      // -----------------------------
 
-      const result =
-        await pool.query(
-          `
-          INSERT INTO businesses
-          (
-            id,
-            name,
-            active,
-            whatsapp,
-            phone,
-            subscription_expires_at
-          )
-          VALUES
-          ($1,$2,TRUE,$3,$4,$5)
-          RETURNING *
-          `,
-          [
-            businessId,
-            clean(name),
-            clean(whatsapp),
-            clean(phone),
-            expires
-          ]
-        );
+      let expires =
+        subscriptionExpiresAt ||
+        "2099-12-31T23:59:59.000Z";
 
-      const row =
-        result.rows[0];
+      const expiryDate = new Date(expires);
 
-      res.status(201).json({
+      if (Number.isNaN(expiryDate.getTime())) {
+        return res.status(400).json({
+          ok: false,
+          message:
+            "La fecha de vencimiento no es válida."
+        });
+      }
+
+      expires = expiryDate.toISOString();
+
+      // -----------------------------
+      // CREAR NEGOCIO
+      // -----------------------------
+
+      const result = await pool.query(
+        `
+        INSERT INTO businesses
+        (
+          id,
+          name,
+          active,
+          whatsapp,
+          phone,
+          subscription_expires_at
+        )
+        VALUES
+        (
+          $1,
+          $2,
+          TRUE,
+          $3,
+          $4,
+          $5
+        )
+        RETURNING *
+        `,
+        [
+          businessId,
+          businessName,
+          businessWhatsApp,
+          businessPhone,
+          expires
+        ]
+      );
+
+      const row = result.rows[0];
+
+      // -----------------------------
+      // RESPUESTA
+      // -----------------------------
+
+      return res.status(201).json({
         ok: true,
+        message: "Negocio creado correctamente.",
         business: {
           id: row.id,
           name: row.name,
@@ -1320,12 +1374,19 @@ app.post(
       });
 
     } catch (error) {
-      console.error(error);
 
-      res.status(500).json({
+      console.error(
+        "❌ ERROR CREANDO NEGOCIO:",
+        error
+      );
+
+      // Mostrar el error real al administrador
+      return res.status(500).json({
         ok: false,
         message:
-          "Error creando negocio."
+          error?.detail ||
+          error?.message ||
+          "Error interno del servidor."
       });
     }
   }
