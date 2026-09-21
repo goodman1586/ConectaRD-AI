@@ -1027,9 +1027,13 @@ async function loadAdminProducts() {
   const id = $('productBusinessSelect').value;
 
   if (!id) {
-    $('adminProductsList').innerHTML =
-      '<p class="muted">Selecciona un negocio.</p>';
-    return;
+const listEl = $('adminProductsList');
+
+if (listEl) {
+  listEl.innerHTML = '<p class="muted">Selecciona un negocio.</p>';
+}
+
+return;
   }
 
   try {
