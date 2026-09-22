@@ -574,6 +574,49 @@ async function confirmOrder() {
     });
 
     const o = d.order;
+    
+    // WhatsApp del dueño del negocio
+const whatsappDueno = 'PON_AQUI_EL_NUMERO_DEL_DUENO';
+
+const numeroWhatsApp = whatsappDueno.replace(/\D/g, '');
+
+const productosWhatsApp = items.map(item =>
+  `• ${item.quantity} x ${item.name} — RD$${money(item.unitPrice * item.quantity)}`
+).join('\n');
+
+let mensajeWhatsApp =
+`🛵 NUEVO PEDIDO - ConectaRD AI
+
+👤 Cliente: ${name}
+📞 Teléfono: ${phone}
+
+🛒 PRODUCTOS:
+${productosWhatsApp}
+
+💰 TOTAL: RD$${money(total)}
+
+🚚 Tipo de entrega: ${delivery === 'delivery' ? 'Delivery' : 'Recogida'}
+
+📍 Dirección:
+${$('address').value.trim() || 'No especificada'}
+
+📝 Nota:
+${$('notes').value.trim() || 'Ninguna'}
+
+🔑 Código de entrega:
+${o.deliveryCode || 'No disponible'}`;
+
+if (coords && coords.lat && coords.lng) {
+  mensajeWhatsApp += `
+
+📌 Ubicación:
+https://www.google.com/maps?q=${coords.lat},${coords.lng}`;
+}
+
+const whatsappURL =
+  `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensajeWhatsApp)}`;
+
+window.location.href = whatsappURL;
 
     $('receipt').innerHTML = `
       <div class="line"><span>Pedido</span><b>#${escapeHtml(o.id.slice(0,8))}</b></div>
