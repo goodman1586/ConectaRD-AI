@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Panel del Cliente — ConectaRD AI 8.0</title>
+<style>
+*{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#17202a}
+header{background:#111827;color:#fff;padding:16px 18px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+main{max-width:1100px;margin:auto;padding:16px} .card{background:#fff;border-radius:16px;padding:18px;margin-bottom:15px;box-shadow:0 3px 15px #0000000b}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px} .row{display:flex;gap:8px;flex-wrap:wrap}
+input,textarea,select{width:100%;padding:11px;border:1px solid #d5dae1;border-radius:9px;margin:5px 0 11px;font:inherit}
+button{border:0;border-radius:9px;padding:11px 13px;font-weight:bold;cursor:pointer}
+.primary{background:#111827;color:#fff} .soft{background:#edf1f5} .green{background:#dcfce7;color:#166534} .danger{background:#fee2e2;color:#991b1b}
+.muted{color:#667085;font-size:14px} .error{color:#b42318} .success{color:#176b3a}
+.order{border:1px solid #e1e5ea;border-radius:12px;padding:14px;margin:10px 0}
+.line{display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:9px 0;gap:10px}
+table{width:100%;border-collapse:collapse;min-width:700px} th,td{padding:9px;border-bottom:1px solid #eee;text-align:left}
+.table-wrap{overflow:auto} .hidden{display:none} .chat{height:330px;overflow:auto;border:1px solid #e2e6eb;border-radius:12px;padding:10px;background:#fafafa}
+.msg{margin:8px 0;padding:10px 12px;border-radius:12px;max-width:90%} .user{margin-left:auto;background:#111827;color:#fff} .assistant{background:#e9eef5}
+.product{border:1px solid #e1e5ea;border-radius:12px;padding:13px;margin:9px 0}
+.products{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(max-width:720px){.grid,.products{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><b>ConectaRD AI</b><span>8.0 · Panel del Cliente</span></header>
+<main>
+<div class="card"><h2>🛒 Cliente</h2><p class="muted">Selecciona el negocio y realiza tu pedido.</p><input id="bizId" value=""><button class="primary" id="load">Cargar menú</button></div>
+<div class="card"><h3>🍔 Menú</h3><div id="products" class="products"></div></div>
+<div class="grid"><div class="card"><h3>🧾 Carrito</h3><div id="cart"></div><b id="total">RD$0</b></div><div class="card"><h3>📍 Entrega</h3><input id="customer" placeholder="Nombre"><input id="phone" placeholder="WhatsApp"><select id="delivery"><option value="delivery">Delivery</option><option value="pickup">Recoger</option></select><input id="address" placeholder="Dirección"><textarea id="notes" placeholder="Notas"></textarea><button class="green" id="order">Confirmar pedido</button><p id="status"></p></div></div>
+</main>
+<script>
+'use strict';
+const API = location.origin;
+const params = new URLSearchParams(location.search);
+let BUSINESS_ID = params.get('businessId') || 'anamuya-demo';
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const money = n => 'RD$' + Number(n||0).toLocaleString('es-DO',{maximumFractionDigits:2});
+async function api(path, options={}) {
+  const headers={'Content-Type':'application/json','x-business-id':BUSINESS_ID,...(options.headers||{})};
+  const r=await fetch(API+path,{...options,headers});
+  const d=await r.json().catch(()=>({ok:false,message:'Respuesta no válida'}));
+  if(!r.ok) throw new Error(d.message||d.error||'Error de conexión');
+  return d;
+}
+
+$('bizId').value=BUSINESS_ID;let ps=[],cart={};
+$('load').onclick=()=>{BUSINESS_ID=$('bizId').value.trim()||'anamuya-demo';loadP()};
+async function loadP(){try{const d=await api('/api/products');ps=d.products||[];$('products').innerHTML=ps.map(p=>`<div class="product"><b>${esc(p.name)}</b><div>${money(p.price)}</div><button class="soft add" data-id="${esc(p.id)}">Agregar</button></div>`).join('')||'<p>No hay productos.</p>';document.querySelectorAll('.add').forEach(x=>x.onclick=()=>{cart[x.dataset.id]=(cart[x.dataset.id]||0)+1;render()});render()}catch(e){$('products').innerHTML='<p class="error">'+esc(e.message)+'</p>'}}
+function render(){const ids=Object.keys(cart);$('cart').innerHTML=ids.map(id=>{const p=ps.find(x=>x.id===id);return p?`<div class="line"><span>${cart[id]} × ${esc(p.name)}</span><b>${money(cart[id]*p.price)}</b></div>`:''}).join('')||'<p class="muted">Carrito vacío.</p>';let t=ids.reduce((s,id)=>{const p=ps.find(x=>x.id===id);return s+(p?cart[id]*p.price:0)},0);$('total').textContent=money(t)}
+$('order').onclick=async()=>{try{const ids=Object.keys(cart);if(!ids.length)return alert('Agrega productos.');const items=ids.map(id=>{const p=ps.find(x=>x.id===id);return {name:p.name,quantity:cart[id],unitPrice:p.price}});const sub=items.reduce((s,x)=>s+x.quantity*x.unitPrice,0);const delivery=$('delivery').value;const total=sub+(delivery==='delivery'?50:0);const d=await api('/api/orders',{method:'POST',body:JSON.stringify({customer:$('customer').value,phone:$('phone').value,deliveryType:delivery,address:$('address').value,items,notes:$('notes').value,total})});$('status').textContent='✅ Pedido #'+d.order.id.slice(0,8)+' · Código '+d.order.deliveryCode;cart={};render()}catch(e){$('status').textContent='❌ '+e.message}};loadP();
+
+</script>
+</body>
+</html>

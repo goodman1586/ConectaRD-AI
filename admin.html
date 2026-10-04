@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Panel Maestro — ConectaRD AI 8.0</title>
+<style>
+*{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#17202a}
+header{background:#111827;color:#fff;padding:16px 18px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+main{max-width:1100px;margin:auto;padding:16px} .card{background:#fff;border-radius:16px;padding:18px;margin-bottom:15px;box-shadow:0 3px 15px #0000000b}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px} .row{display:flex;gap:8px;flex-wrap:wrap}
+input,textarea,select{width:100%;padding:11px;border:1px solid #d5dae1;border-radius:9px;margin:5px 0 11px;font:inherit}
+button{border:0;border-radius:9px;padding:11px 13px;font-weight:bold;cursor:pointer}
+.primary{background:#111827;color:#fff} .soft{background:#edf1f5} .green{background:#dcfce7;color:#166534} .danger{background:#fee2e2;color:#991b1b}
+.muted{color:#667085;font-size:14px} .error{color:#b42318} .success{color:#176b3a}
+.order{border:1px solid #e1e5ea;border-radius:12px;padding:14px;margin:10px 0}
+.line{display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:9px 0;gap:10px}
+table{width:100%;border-collapse:collapse;min-width:700px} th,td{padding:9px;border-bottom:1px solid #eee;text-align:left}
+.table-wrap{overflow:auto} .hidden{display:none} .chat{height:330px;overflow:auto;border:1px solid #e2e6eb;border-radius:12px;padding:10px;background:#fafafa}
+.msg{margin:8px 0;padding:10px 12px;border-radius:12px;max-width:90%} .user{margin-left:auto;background:#111827;color:#fff} .assistant{background:#e9eef5}
+.product{border:1px solid #e1e5ea;border-radius:12px;padding:13px;margin:9px 0}
+.products{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(max-width:720px){.grid,.products{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><b>ConectaRD AI</b><span>8.0 · Panel Maestro</span></header>
+<main>
+<div class="card">
+<h2>👑 Panel Maestro</h2>
+<p class="muted">Administración central de negocios, productos y repartidores.</p>
+<input id="key" type="password" placeholder="ADMIN_KEY de Render">
+<div class="row"><button class="primary" id="login">🔐 Entrar</button><button class="soft" id="logout">Salir</button></div>
+<p id="status" class="muted"></p>
+</div>
+<div id="panel" class="hidden">
+<div class="card">
+<h3>🏪 Negocios</h3>
+<div class="grid">
+<div><input id="bid" placeholder="ID único"><input id="bname" placeholder="Nombre"><input id="bwa" placeholder="WhatsApp"><input id="bphone" placeholder="Teléfono"><input id="bexp" type="date"><button class="green" id="createB">➕ Crear negocio</button></div>
+<div><button class="soft" id="refreshB">🔄 Actualizar</button></div>
+</div>
+<div id="businesses" class="table-wrap"></div>
+</div>
+<div class="card">
+<h3>🛒 Productos</h3>
+<select id="bizSelect"></select>
+<div class="grid"><div><input id="pname" placeholder="Producto"><input id="pprice" type="number" step="0.01" placeholder="Precio RD$"><button class="green" id="addP">➕ Agregar</button></div><div><button class="soft" id="refreshP">🔄 Actualizar</button></div></div>
+<div id="products" class="table-wrap"></div>
+</div>
+<div class="card">
+<h3>🚴 Repartidores</h3>
+<select id="driverBiz"></select><input id="dname" placeholder="Nombre"><input id="dwa" placeholder="WhatsApp"><input id="dphone" placeholder="Teléfono"><button class="green" id="addD">➕ Agregar repartidor</button>
+<div id="drivers" class="table-wrap"></div>
+</div>
+</div>
+</main>
+<script>
+'use strict';
+const API = location.origin;
+const params = new URLSearchParams(location.search);
+let BUSINESS_ID = params.get('businessId') || 'anamuya-demo';
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const money = n => 'RD$' + Number(n||0).toLocaleString('es-DO',{maximumFractionDigits:2});
+async function api(path, options={}) {
+  const headers={'Content-Type':'application/json','x-business-id':BUSINESS_ID,...(options.headers||{})};
+  const r=await fetch(API+path,{...options,headers});
+  const d=await r.json().catch(()=>({ok:false,message:'Respuesta no válida'}));
+  if(!r.ok) throw new Error(d.message||d.error||'Error de conexión');
+  return d;
+}
+
+function ah(){return {'x-admin-key':sessionStorage.getItem('conectard_admin_key')||''}}
+async function adminApi(path,options={}){return api(path,{...options,headers:{...ah(),...(options.headers||{})}})}
+function fillBiz(){const opts=window.bs.map(b=>`<option value="${esc(b.id)}">${esc(b.name)} (${esc(b.id)})</option>`).join('');$('bizSelect').innerHTML=opts;$('driverBiz').innerHTML=opts}
+async function loadB(){
+ const d=await adminApi('/api/admin/businesses'); window.bs=d.businesses||[]; fillBiz();
+ $('businesses').innerHTML=window.bs.length?`<table><tr><th>Negocio</th><th>ID</th><th>Estado</th><th>Vencimiento</th><th>Acciones</th></tr>${window.bs.map(b=>`<tr><td>${esc(b.name)}</td><td>${esc(b.id)}</td><td>${b.active?'ACTIVO':'SUSPENDIDO'}</td><td>${b.subscriptionExpiresAt?new Date(b.subscriptionExpiresAt).toLocaleDateString('es-DO'):'—'}</td><td><button class="soft sel" data-id="${esc(b.id)}">Administrar</button><button class="${b.active?'danger':'green'} tog" data-id="${esc(b.id)}" data-a="${b.active}">${b.active?'Suspender':'Activar'}</button><button class="danger del" data-id="${esc(b.id)}">Eliminar</button></td></tr>`).join('')}</table>`:'<p class="muted">No hay negocios.</p>';
+ document.querySelectorAll('.sel').forEach(x=>x.onclick=()=>{BUSINESS_ID=x.dataset.id;$('bizSelect').value=BUSINESS_ID;loadP()});
+ document.querySelectorAll('.tog').forEach(x=>x.onclick=async()=>{await adminApi('/api/admin/businesses/'+encodeURIComponent(x.dataset.id),{method:'PATCH',body:JSON.stringify({active:x.dataset.a!=='true'})});loadB()});
+ document.querySelectorAll('.del').forEach(x=>x.onclick=async()=>{if(confirm('¿Eliminar negocio?')){await adminApi('/api/admin/businesses/'+encodeURIComponent(x.dataset.id),{method:'DELETE'});loadB()}});
+}
+async function loadP(){
+ const id=$('bizSelect').value||BUSINESS_ID; BUSINESS_ID=id;
+ const d=await adminApi('/api/admin/products?businessId='+encodeURIComponent(id));
+ const ps=d.products||[];
+ $('products').innerHTML=ps.length?`<table><tr><th>Producto</th><th>Precio</th><th>Disponible</th><th>Acciones</th></tr>${ps.map(p=>`<tr><td>${esc(p.name)}</td><td>${money(p.price)}</td><td>${p.available?'Sí':'No'}</td><td><button class="soft pa" data-id="${esc(p.id)}" data-a="${p.available}">${p.available?'Ocultar':'Mostrar'}</button><button class="danger pd" data-id="${esc(p.id)}">Eliminar</button></td></tr>`).join('')}</table>`:'<p class="muted">No hay productos.</p>';
+ document.querySelectorAll('.pa').forEach(x=>x.onclick=async()=>{await adminApi('/api/admin/products/'+encodeURIComponent(x.dataset.id)+'/availability',{method:'PATCH',body:JSON.stringify({available:x.dataset.a!=='true',businessId:id})});loadP()});
+ document.querySelectorAll('.pd').forEach(x=>x.onclick=async()=>{if(confirm('¿Eliminar producto?')){await adminApi('/api/admin/products/'+encodeURIComponent(x.dataset.id),{method:'DELETE',body:JSON.stringify({businessId:id})});loadP()}});
+}
+async function loadD(){const d=await adminApi('/api/admin/drivers');$('drivers').innerHTML=(d.drivers||[]).map(x=>`<div class="line"><span><b>${esc(x.name)}</b><br>${esc(x.whatsapp||x.phone||'')}</span><span>${x.active?'ACTIVO':'INACTIVO'}</span></div>`).join('')||'<p class="muted">No hay repartidores.</p>'}
+$('login').onclick=async()=>{sessionStorage.setItem('conectard_admin_key',$('key').value.trim());try{await loadB();await loadP();await loadD();$('panel').classList.remove('hidden');$('status').textContent='✅ Administrador conectado.'}catch(e){sessionStorage.removeItem('conectard_admin_key');$('status').textContent='❌ '+e.message}}
+$('logout').onclick=()=>{sessionStorage.removeItem('conectard_admin_key');$('panel').classList.add('hidden');$('status').textContent='Sesión cerrada.'}
+$('refreshB').onclick=loadB;$('refreshP').onclick=loadP;
+$('createB').onclick=async()=>{try{await adminApi('/api/admin/businesses',{method:'POST',body:JSON.stringify({id:$('bid').value,name:$('bname').value,whatsapp:$('bwa').value,phone:$('bphone').value,subscriptionExpiresAt:$('bexp').value})});loadB()}catch(e){alert(e.message)}}
+$('addP').onclick=async()=>{try{await adminApi('/api/admin/products',{method:'POST',body:JSON.stringify({businessId:$('bizSelect').value,name:$('pname').value,price:$('pprice').value})});loadP()}catch(e){alert(e.message)}}
+$('addD').onclick=async()=>{try{await adminApi('/api/admin/drivers',{method:'POST',body:JSON.stringify({businessId:$('driverBiz').value,name:$('dname').value,whatsapp:$('dwa').value,phone:$('dphone').value})});loadD()}catch(e){alert(e.message)}}
+
+</script>
+</body>
+</html>

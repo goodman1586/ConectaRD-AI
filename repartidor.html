@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Panel del Repartidor — ConectaRD AI 8.0</title>
+<style>
+*{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#17202a}
+header{background:#111827;color:#fff;padding:16px 18px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+main{max-width:1100px;margin:auto;padding:16px} .card{background:#fff;border-radius:16px;padding:18px;margin-bottom:15px;box-shadow:0 3px 15px #0000000b}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px} .row{display:flex;gap:8px;flex-wrap:wrap}
+input,textarea,select{width:100%;padding:11px;border:1px solid #d5dae1;border-radius:9px;margin:5px 0 11px;font:inherit}
+button{border:0;border-radius:9px;padding:11px 13px;font-weight:bold;cursor:pointer}
+.primary{background:#111827;color:#fff} .soft{background:#edf1f5} .green{background:#dcfce7;color:#166534} .danger{background:#fee2e2;color:#991b1b}
+.muted{color:#667085;font-size:14px} .error{color:#b42318} .success{color:#176b3a}
+.order{border:1px solid #e1e5ea;border-radius:12px;padding:14px;margin:10px 0}
+.line{display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:9px 0;gap:10px}
+table{width:100%;border-collapse:collapse;min-width:700px} th,td{padding:9px;border-bottom:1px solid #eee;text-align:left}
+.table-wrap{overflow:auto} .hidden{display:none} .chat{height:330px;overflow:auto;border:1px solid #e2e6eb;border-radius:12px;padding:10px;background:#fafafa}
+.msg{margin:8px 0;padding:10px 12px;border-radius:12px;max-width:90%} .user{margin-left:auto;background:#111827;color:#fff} .assistant{background:#e9eef5}
+.product{border:1px solid #e1e5ea;border-radius:12px;padding:13px;margin:9px 0}
+.products{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(max-width:720px){.grid,.products{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><b>ConectaRD AI</b><span>8.0 · Panel del Repartidor</span></header>
+<main>
+<div class="card"><h2>🚴 Panel del Repartidor</h2><p class="muted">Introduce el negocio y tu ID de repartidor.</p><input id="bizId" placeholder="businessId" value=""><input id="driverId" placeholder="ID del repartidor"><button class="primary" id="load">Cargar pedidos</button><div id="status" class="muted"></div></div>
+<div class="card"><h3>📦 Mis entregas</h3><div id="orders"></div></div>
+</main>
+<script>
+'use strict';
+const API = location.origin;
+const params = new URLSearchParams(location.search);
+let BUSINESS_ID = params.get('businessId') || 'anamuya-demo';
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const money = n => 'RD$' + Number(n||0).toLocaleString('es-DO',{maximumFractionDigits:2});
+async function api(path, options={}) {
+  const headers={'Content-Type':'application/json','x-business-id':BUSINESS_ID,...(options.headers||{})};
+  const r=await fetch(API+path,{...options,headers});
+  const d=await r.json().catch(()=>({ok:false,message:'Respuesta no válida'}));
+  if(!r.ok) throw new Error(d.message||d.error||'Error de conexión');
+  return d;
+}
+
+$('bizId').value=BUSINESS_ID;
+function maps(o){return o.location?.lat?'https://www.google.com/maps/dir/?api=1&destination='+o.location.lat+','+o.location.lng:(o.address?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(o.address):'https://www.google.com/maps/')}
+async function loadD(){try{BUSINESS_ID=$('bizId').value.trim()||'anamuya-demo';const did=$('driverId').value.trim();const d=await api('/api/orders');let os=(d.orders||[]).filter(o=>(o.status==='preparing'||o.status==='on_the_way')&&(!did||o.driverId===did));$('orders').innerHTML=os.map(o=>`<div class="order"><b>#${esc(o.id.slice(0,8))} · ${esc(o.customer)}</b><p>📞 ${esc(o.phone)}<br>📍 ${esc(o.address||'Sin dirección')}<br>💰 ${money(o.total)}</p><div class="row"><button class="soft nav" data-id="${esc(o.id)}">🗺️ Navegar</button><button class="green done" data-id="${esc(o.id)}">🔐 Confirmar entrega</button></div></div>`).join('')||'<p class="muted">No hay entregas asignadas.</p>';document.querySelectorAll('.nav').forEach(x=>x.onclick=()=>{const o=os.find(z=>z.id===x.dataset.id);window.open(maps(o),'_blank')});document.querySelectorAll('.done').forEach(x=>x.onclick=async()=>{const code=prompt('Código de entrega de 4 dígitos:');if(!/^\d{4}$/.test(String(code||'').trim()))return alert('Código inválido.');try{await api('/api/orders/'+encodeURIComponent(x.dataset.id)+'/status',{method:'PATCH',body:JSON.stringify({status:'delivered',deliveryCode:String(code).trim()})});loadD()}catch(e){alert(e.message)}})}catch(e){$('status').textContent='❌ '+e.message}}
+$('load').onclick=loadD;
+
+</script>
+</body>
+</html>
