@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: conectard-ai
+    runtime: node
+    plan: starter            # el plan free se duerme; starter evita demoras en el primer pedido
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_KEY
+        sync: false          # lo escribes tú en el panel de Render
+      - key: DATABASE_URL
+        sync: false          # pega la Internal Database URL de tu Postgres
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
