@@ -1,0 +1,15 @@
+{
+  "name": "conectard-ai",
+  "version": "8.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "openai": "^5.12.2",
+    "pg": "^8.16.3"
+  }
+}
