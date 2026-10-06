@@ -1,17 +1,40 @@
 (() => {
   const { $, esc, money, safeUrl, STATUS, makeApi, actions } = CRD;
   const api = makeApi();
-  let B = '', products = [], cart = {}, coords = null, trackTimer = null, sending = false;
+  let B = '', products = [], businesses = [], cart = {}, coords = null, trackTimer = null, sending = false;
   const LAST = 'crd_last_order';
 
   async function boot() {
     const d = await api('/api/businesses');
     if (!d.businesses.length) { $('business').innerHTML = '<p class="muted">No hay negocios disponibles.</p>'; return; }
-    $('biz').innerHTML = d.businesses.map(b => `<option value="${esc(b.id)}">${esc(b.name)} — ${esc(b.category)}</option>`).join('');
-    B = $('biz').value;
-    $('biz').onchange = async () => { B = $('biz').value; cart = {}; coords = null; $('chat').innerHTML = ''; await load(); };
+    businesses = d.businesses;
+    renderBusinessChoices();
+    B = businesses[0].id;
     await load();
     resumeTracking();
+  }
+
+  function renderBusinessChoices() {
+    $('businessChoices').innerHTML = businesses.map((b, i) => `
+      <button class="business-choice" type="button" data-business-index="${i}" aria-pressed="${i === 0}">
+        ${safeUrl(b.logo) ? `<img class="business-logo" src="${esc(b.logo)}" alt="">` : ''}
+        <span class="business-details"><b>${esc(b.name)}</b><span class="muted">${esc(b.category || 'Establecimiento')}</span></span>
+      </button>`).join('');
+    $('businessChoices').querySelectorAll('[data-business-index]').forEach(button => {
+      button.onclick = () => selectBusiness(Number(button.dataset.businessIndex));
+    });
+  }
+
+  async function selectBusiness(index) {
+    const chosen = businesses[index];
+    if (!chosen || chosen.id === B) return;
+    B = chosen.id;
+    $('businessChoices').querySelectorAll('[data-business-index]').forEach((button, i) => {
+      button.setAttribute('aria-pressed', String(i === index));
+    });
+    cart = {}; coords = null; $('gpsmsg').textContent = 'Ubicación pendiente.'; $('chat').innerHTML = '';
+    $('msg').textContent = '';
+    await load();
   }
 
   async function load() {
@@ -29,9 +52,11 @@
       el.innerHTML = `<div class="promo"><div class="row"><div><h2>🔥 ${esc(b.promo.title)}</h2><p>${esc(b.promo.text)}</p></div>${safeUrl(b.promo.image) ? `<img class="promoimg" alt="" src="${esc(b.promo.image)}">` : ''}</div></div>`;
     } else el.classList.add('hidden');
   }
+
   function renderProducts() {
     $('products').innerHTML = products.map(p => `<div class="item"><div class="row">${safeUrl(p.image) ? `<img class="productimg" alt="" src="${esc(p.image)}">` : ''}<div><b>${esc(p.name)}</b><p>${esc(p.description)}</p><div class="price">${money(p.price)}</div></div></div><button class="green" type="button" data-act="add" data-id="${esc(p.id)}">➕ Agregar</button></div>`).join('') || '<p class="muted">No hay productos disponibles.</p>';
   }
+
   function renderCart() {
     let total = 0;
     $('cart').innerHTML = Object.entries(cart).map(([id, q]) => {
@@ -41,6 +66,7 @@
     }).join('') || '<p class="muted">Carrito vacío.</p>';
     $('total').textContent = money(total);
   }
+
   actions.add = d => { cart[d.id] = Math.min(99, (cart[d.id] || 0) + 1); renderCart(); };
   actions.dec = d => { cart[d.id] = (cart[d.id] || 0) - 1; if (cart[d.id] <= 0) delete cart[d.id]; renderCart(); };
 
@@ -52,6 +78,7 @@
       () => ($('gpsmsg').textContent = '⚠️ No se pudo obtener GPS. Puedes escribir la dirección.'),
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
   };
+
   $('maps').onclick = () => {
     const q = coords ? `${coords.lat},${coords.lng}` : $('address').value.trim();
     window.open(q ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q) : 'https://www.google.com/maps/', '_blank', 'noopener');
@@ -91,6 +118,7 @@
     };
     tick(); trackTimer = setInterval(tick, 10000);
   }
+
   actions.clearTrack = () => { localStorage.removeItem(LAST); clearInterval(trackTimer); $('tracker').classList.add('hidden'); };
 
   async function ask() {
@@ -103,8 +131,10 @@
     } catch (e) { $('chat').innerHTML += `<p class="error">${esc(e.message)}</p>`; }
     finally { $('ask').disabled = false; }
   }
+
   $('ask').onclick = ask;
   $('question').addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
 
   boot().catch(e => ($('msg').textContent = '❌ ' + e.message));
 })();
+
