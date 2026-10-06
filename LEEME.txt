@@ -1,0 +1,14 @@
+CONECTARD AI - PAQUETE COMPLETO ACTUALIZADO
+
+Este paquete contiene el proyecto completo con sus rutas conservadas.
+
+Para actualizar GitHub, sube el contenido de esta carpeta a la raiz del repositorio y confirma los cambios. Debe quedar server.js y package.json en la raiz, y los HTML/CSS/JS dentro de public/.
+
+Incluye .env.example, que es una plantilla. No subas un archivo .env real ni claves secretas.
+
+Cambios incluidos:
+- Selector de negocios con tarjetas de logos y desplazamiento horizontal; al elegir un negocio se ocultan los demas.
+- Catalogo deslizable y carrusel de jugos configurable desde el panel del dueño.
+- Categoria de producto editable para clasificar jugos.
+- Tarjetas compactas con imagen, nombre, precio, descripción resumida y boton Ver mas.
+- Migracion automatica de preferencias de catálogo en server.js.
