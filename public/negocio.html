@@ -1,0 +1,26 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Negocio · ConectaRD AI</title><link rel="stylesheet" href="/common.css"></head><body>
+<header><b>ConectaRD AI</b><span>🏪 Panel del negocio</span></header><main>
+<section id="login" class="card"><h1>🏪 Acceso del dueño</h1>
+  <input id="bid" placeholder="ID del negocio" autocomplete="username">
+  <input id="pw" type="password" placeholder="Contraseña" autocomplete="current-password">
+  <button class="primary" id="enter" type="button">Entrar</button><p id="err" class="error"></p></section>
+<section id="app" class="hidden">
+  <div id="head" class="card"></div>
+  <div class="card"><div class="row between"><h2>🔔 Pedidos</h2><span class="row"><button class="soft" id="notify" type="button">🔔 Activar notificaciones</button><button class="soft" id="logout" type="button">Salir</button></span></div><div id="orders"></div></div>
+  <div class="grid">
+    <section class="card"><h2>🚴 Repartidores</h2>
+      <input id="dn" placeholder="Nombre" maxlength="80"><input id="dw" placeholder="WhatsApp" maxlength="30"><input id="dp" placeholder="Teléfono" maxlength="30">
+      <button class="green" id="addd" type="button">Agregar repartidor</button><div id="drivers"></div></section>
+    <section class="card"><h2>📊 Reportes</h2><div id="reports"></div></section>
+  </div>
+  <section class="card"><h2>🛒 Productos</h2><div class="grid">
+    <div><input id="pn" placeholder="Nombre" maxlength="120"><input id="pp" type="number" min="0" step="0.01" placeholder="Precio RD$"><input id="pi" placeholder="URL de imagen (https://...)"><input id="pcat" placeholder="Categoría (escribe Jugos para incluirlo en esa sección)" maxlength="60"><input id="pd" placeholder="Descripción" maxlength="500"><button class="green" id="addp" type="button">➕ Agregar producto</button></div>
+    <div id="products"></div></div></section>
+  <section class="card"><h2>🏪 Información pública del negocio</h2><div class="grid">
+    <div><input id="name" placeholder="Nombre" maxlength="100"><input id="email" placeholder="Correo electrónico"><input id="wa" placeholder="WhatsApp"><input id="phone" placeholder="Teléfono"><input id="address" placeholder="Dirección" maxlength="200"><input id="logo" placeholder="URL del logo"><input id="cover" placeholder="URL de portada"></div>
+    <div><h3>📢 Promoción / Oferta</h3><input id="pt" placeholder="Título" maxlength="100"><textarea id="px" placeholder="Descripción" maxlength="400"></textarea><input id="pimg" placeholder="URL imagen de oferta"><label>Vence el <input id="pex" type="date"></label><label><input id="pa" type="checkbox" style="width:auto"> Publicar promoción</label></div>
+  </div><div class="item"><h3>Opciones de catálogo para tus clientes</h3><label class="setting"><input id="catalogCarousel" type="checkbox"> Mostrar el catálogo como carrusel deslizable</label><label class="setting"><input id="juiceCarousel" type="checkbox"> Separar productos de categoría “Jugos” en su propio carrusel</label><p class="muted">Para clasificar un producto como jugo, escribe “Jugos” en su categoría.</p></div><button class="primary" id="save" type="button">Guardar cambios</button><p id="saved" class="success" aria-live="polite"></p></section>
+  <section class="card"><h2>🔑 Cambiar contraseña</h2><input id="cpw" type="password" placeholder="Contraseña actual" autocomplete="current-password"><input id="npw" type="password" placeholder="Nueva contraseña (mín. 8)" autocomplete="new-password"><button class="soft" id="chpw" type="button">Cambiar contraseña</button></section>
+</section></main>
+<script src="/js/common.js"></script><script src="/js/negocio.js"></script>
+</body></html>
