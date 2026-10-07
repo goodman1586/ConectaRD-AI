@@ -1,0 +1,47 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Maestro · ConectaRD AI</title><link rel="stylesheet" href="/common.css"><style>
+  .product-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;margin-bottom:18px}
+  .product-create{border:1px solid #e1e5ea;border-radius:12px;padding:16px;margin:16px 0 22px;background:#fafbfc}
+  .product-create h3,.product-list-title{margin:0 0 12px}
+  .product-create .fields{display:grid;grid-template-columns:minmax(0,2fr) minmax(130px,1fr) auto;gap:10px;align-items:end}
+  .product-create label,.product-toolbar label{display:block;font-weight:700}
+  .product-create input,.product-toolbar select{margin-bottom:0}
+  .product-feedback{min-height:1.4em;margin:10px 0;color:#475467}
+  .product-feedback.success{color:#176b3a}.product-feedback.error{color:#b42318}
+  @media(max-width:650px){.product-toolbar,.product-create .fields{grid-template-columns:1fr}.product-create button,.product-toolbar button{width:100%}}
+</style></head><body>
+<header><b>ConectaRD AI</b><span>👑 Panel Maestro</span></header><main>
+<section id="login" class="card"><h1>🔐 Acceso Maestro</h1><input id="key" type="password" placeholder="ADMIN_KEY" autocomplete="current-password"><button class="primary" id="go" type="button">Entrar</button><p id="err" class="error"></p></section>
+<section id="app" class="hidden">
+  <div class="card"><h1>👑 Administración total</h1><div class="row">
+    <button class="soft" type="button" data-act="tab" data-t="business">🏪 Negocios</button><button class="soft" type="button" data-act="tab" data-t="drivers">🚴 Repartidores</button>
+    <button class="soft" type="button" data-act="tab" data-t="products">🛒 Productos</button><button class="soft" type="button" data-act="tab" data-t="orders">📦 Pedidos</button>
+    <button class="soft" type="button" data-act="tab" data-t="system">⚙️ Sistema</button><button class="danger" type="button" id="logout">Salir</button></div></div>
+  <section id="business" class="card"><h2>🏪 Negocios</h2><div class="grid">
+    <div><h3>Crear negocio</h3><input id="id" placeholder="ID único (letras, números, - _)"><input id="name" placeholder="Nombre"><input id="cat" placeholder="Categoría"><input id="wa" placeholder="WhatsApp"><input id="phone" placeholder="Teléfono"><input id="email" placeholder="Correo"><input id="logo" placeholder="URL del logo (https://...)"><input id="cover" placeholder="URL de portada (https://...)"><input id="addr" placeholder="Dirección"><input id="pw" type="password" placeholder="Contraseña del dueño (mín. 8)" autocomplete="new-password"><label>Suscripción hasta</label><input id="exp" type="date"><button class="green" id="create" type="button">Crear negocio</button></div>
+    <div><h3>Administrar</h3><div id="businesses"></div></div></div></section>
+  <section id="drivers" class="card hidden"><h2>🚴 Repartidores</h2><div class="grid">
+    <div><select id="db" aria-label="Negocio"></select><input id="dn" placeholder="Nombre"><input id="dw" placeholder="WhatsApp"><input id="dp" placeholder="Teléfono"><button class="green" id="created" type="button">Crear repartidor</button></div>
+    <div><p class="muted">El código de acceso se muestra una sola vez al crearlo o regenerarlo.</p><div id="driversList"></div></div></div></section>
+  <section id="products" class="card hidden" aria-labelledby="productsTitle">
+    <h2 id="productsTitle">🛒 Productos por negocio</h2>
+    <div class="product-toolbar">
+      <div><label for="pb">Seleccionar negocio</label><select id="pb" aria-label="Seleccionar negocio"></select></div>
+      <button class="soft" id="refreshProducts" type="button">🔄 Actualizar catálogo</button>
+    </div>
+    <form id="productForm" class="product-create">
+      <h3>Nuevo producto</h3>
+      <div class="fields">
+        <div><label for="newProductName">Nombre del producto</label><input id="newProductName" name="name" type="text" maxlength="120" placeholder="Ej.: Tostada dominicana" required></div>
+        <div><label for="newProductPrice">Precio RD$</label><input id="newProductPrice" name="price" type="number" min="0" step="0.01" placeholder="0.00" required></div>
+        <button class="green" id="addProduct" type="submit">➕ Agregar producto</button>
+      </div>
+      <p id="productFeedback" class="product-feedback" role="status" aria-live="polite"></p>
+    </form>
+    <h3 class="product-list-title">Productos existentes</h3>
+    <div id="productsList" aria-live="polite"></div>
+  </section>
+  <section id="orders" class="card hidden"><h2>📦 Pedidos</h2><div id="ordersList"></div></section>
+  <section id="system" class="card hidden"><h2>⚙️ Control Maestro</h2><ul><li>Suspender/activar negocios y controlar suscripciones.</li><li>Eliminar negocios y datos asociados.</li><li>Crear, suspender y eliminar repartidores; regenerar códigos.</li><li>Ver pedidos y asignaciones.</li><li>La IA nunca recibe claves privadas.</li></ul></section>
+</section></main>
+<script src="/js/common.js"></script><script src="/js/admin.js"></script>
+</body></html>
