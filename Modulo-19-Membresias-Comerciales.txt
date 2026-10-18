@@ -1,0 +1,432 @@
+Perfecto. Vamos a convertir ConectaRD-AI en una plataforma donde los dueños de restaurantes, farmacias, supermercados, tiendas y otros negocios puedan registrarse, contratar una membresía de US$50 mensuales, pagar y obtener su propio panel comercial. Tú controlarás todo desde el panel de administración.
+
+Te preparé un nuevo módulo para añadir al prompt maestro anterior, sin reemplazar las funciones que ya tienes.
+
+# MÓDULO 19 — MEMBRESÍAS COMERCIALES, SUSCRIPCIONES Y ACTIVACIÓN AUTOMÁTICA DE NEGOCIOS
+## ConectaRD-AI Marketplace
+
+### 1. OBJETIVO
+
+Implementa un sistema completo de membresías para los propietarios de negocios que quieran publicar sus productos o servicios, recibir pedidos y utilizar las herramientas comerciales de ConectaRD-AI.
+
+La membresía comercial tendrá un precio inicial de **US$50 mensuales**, configurable desde el panel de administración.
+
+El sistema debe permitir que un propietario se registre, introduzca los datos de su negocio, seleccione la membresía, pague, reciba confirmación y obtenga acceso a su propio panel comercial.
+
+Todo debe integrarse en el proyecto existente. No reconstruyas la aplicación desde cero ni elimines las funciones existentes.
+
+### 2. NUEVA SECCIÓN: «REGISTRA TU NEGOCIO»
+
+Añade una sección visible en la aplicación y en la página pública con el título:
+
+**«Haz crecer tu negocio con ConectaRD-AI»**
+
+Texto promocional:
+
+«Llega a nuevos clientes, publica tus productos, recibe pedidos y administra tu negocio desde una sola plataforma. Registra tu empresa, activa tu membresía y comienza a construir tu presencia digital».
+
+Incluye:
+- Botón «Registrar mi negocio».
+- Botón «Ver beneficios».
+- Precio de la membresía claramente visible.
+- Lista de funciones incluidas.
+- Preguntas frecuentes.
+- Condiciones de suscripción y cancelación.
+- Acceso a soporte comercial.
+
+Esta sección debe funcionar en español, criollo haitiano e inglés estadounidense.
+
+### 3. FORMULARIO DE REGISTRO COMERCIAL
+
+Crea un formulario moderno y fácil de completar.
+
+**Datos del propietario:**
+- Nombre completo.
+- Correo electrónico.
+- Teléfono.
+- Número de WhatsApp.
+- País de residencia.
+- Idioma preferido.
+- Método de contacto preferido.
+
+**Datos del negocio:**
+- Nombre comercial.
+- Nombre legal de la empresa, si corresponde.
+- Categoría del negocio.
+- Descripción.
+- Dirección.
+- Ciudad.
+- Estado o provincia.
+- País.
+- Código postal cuando corresponda.
+- Teléfono comercial.
+- WhatsApp comercial.
+- Correo electrónico comercial.
+- Logotipo.
+- Fotografía de portada.
+- Horarios de atención.
+- Zona de entrega.
+- Moneda de operación.
+- Sitio web o redes sociales, si existen.
+
+**Credenciales de acceso:**
+
+Utiliza el sistema de autenticación existente. Permite crear una cuenta o iniciar sesión con Google cuando esté configurado.
+
+No almacenes contraseñas en texto plano. No solicites información bancaria innecesaria ni documentos sensibles que no sean necesarios para la verificación.
+
+Permite guardar un borrador para continuar posteriormente.
+
+### 4. MEMBRESÍA COMERCIAL DE US$50 AL MES
+
+Crea una tarjeta de suscripción con:
+
+**ConectaRD-AI Business**
+
+Precio: US$50 mensuales.
+
+Beneficios iniciales:
+- Panel exclusivo para el negocio.
+- Página comercial dentro de la plataforma.
+- Publicación y administración de productos.
+- Gestión de precios, fotografías y disponibilidad.
+- Recepción y administración de pedidos.
+- Configuración del logotipo y la imagen comercial.
+- Gestión de horarios y datos de contacto.
+- Promociones y cupones, según las herramientas habilitadas.
+- Estadísticas básicas de pedidos y actividad.
+- Acceso a las funciones de marketing disponibles.
+- Herramientas de comunicación con los clientes.
+- Configuración de opciones de entrega.
+- Soporte comercial.
+
+El administrador podrá modificar el precio, los beneficios, la duración, las condiciones y los límites del plan sin modificar el código fuente.
+
+No anuncies funciones como ilimitadas si existen límites técnicos o comerciales.
+
+Aclara qué costes no están incluidos en la membresía, por ejemplo las comisiones de pagos, las tarifas de entrega u otros servicios opcionales, cuando correspondan.
+
+### 5. FLUJO AUTOMÁTICO DE REGISTRO, PAGO Y ACTIVACIÓN
+
+Implementa el siguiente proceso:
+
+1. El propietario pulsa «Registrar mi negocio».
+2. Inicia sesión o crea su cuenta.
+3. Completa los datos del propietario y del negocio.
+4. Revisa las condiciones de la membresía.
+5. Acepta las condiciones y selecciona el plan.
+6. El sistema crea una solicitud comercial con estado «Pendiente de pago».
+7. El propietario elige un método de pago habilitado.
+8. El sistema registra la operación y espera su confirmación.
+9. Cuando el pago queda confirmado, la suscripción pasa a «Activa».
+10. Se crea o habilita el espacio comercial correspondiente.
+11. El propietario recibe una notificación de activación.
+12. El administrador recibe un aviso en su panel.
+13. El propietario accede a su panel y completa la configuración.
+14. El negocio aparece públicamente cuando cumple los requisitos de publicación.
+
+El registro de la solicitud no debe activar automáticamente una membresía pagada.
+
+Nunca actives el acceso por una captura de pantalla, una respuesta del navegador o un mensaje que no se haya verificado.
+
+Para pagos electrónicos, confirma el resultado mediante el backend y el proveedor de pagos.
+
+Para transferencias bancarias, exige la conciliación del pago por un administrador autorizado o mediante una integración bancaria que pueda verificarlo de forma fiable.
+
+### 6. MÉTODOS DE PAGO DE LA MEMBRESÍA
+
+Reutiliza la infraestructura de pagos definida en el módulo anterior, pero configura por separado los métodos permitidos para las suscripciones comerciales.
+
+Incluye la posibilidad de habilitar:
+
+- Visa.
+- Mastercard.
+- Tarjetas de débito y crédito compatibles.
+- PayPal.
+- Apple Pay, cuando sea compatible.
+- Google Pay, cuando sea compatible.
+- Transferencia bancaria.
+- Otros métodos que el administrador habilite y que estén disponibles para el país y la cuenta comercial correspondiente.
+
+El panel de administración debe permitir activar o desactivar cada método.
+
+Para las tarjetas y los pagos digitales, utiliza un proveedor autorizado para el tipo de operación.
+
+Si se implementan suscripciones automáticas, utiliza un producto de facturación recurrente y un método de pago compatible. Informa claramente del importe, la periodicidad, la fecha de renovación y la forma de cancelar.
+
+Para transferencias bancarias:
+- Muestra únicamente los datos de cobro aprobados por el administrador.
+- Genera una referencia única para cada solicitud.
+- Permite al cliente informar que ha realizado la transferencia.
+- Mantén la suscripción pendiente hasta confirmar el dinero recibido.
+- Registra quién verificó el pago y cuándo.
+- Conserva un historial de las confirmaciones y los cambios de estado.
+
+Nunca publiques credenciales bancarias privadas, claves de API o contraseñas en la interfaz.
+
+### 7. PANEL ADMINISTRATIVO DE MEMBRESÍAS
+
+Añade una sección llamada «Membresías comerciales».
+
+El administrador debe poder consultar:
+
+- Número total de negocios registrados.
+- Solicitudes pendientes.
+- Membresías activas.
+- Membresías vencidas.
+- Pagos pendientes.
+- Pagos confirmados.
+- Pagos rechazados.
+- Cancelaciones.
+- Renovaciones próximas.
+- Ingresos por suscripciones.
+- Historial de transacciones.
+
+Incluye una tabla con:
+- Nombre del propietario.
+- Nombre comercial.
+- Categoría.
+- Correo y teléfono.
+- Fecha de registro.
+- Plan contratado.
+- Estado de la suscripción.
+- Importe.
+- Método de pago.
+- Referencia de transacción.
+- Fecha de activación.
+- Próxima renovación.
+- Fecha de vencimiento.
+- Acciones administrativas.
+
+Acciones permitidas, según los permisos:
+- Ver los detalles de la solicitud.
+- Aprobar o rechazar registros que requieran revisión.
+- Confirmar transferencias verificadas.
+- Activar o suspender una membresía.
+- Cancelar una suscripción conforme a las condiciones aplicables.
+- Consultar pagos y renovaciones.
+- Enviar notificaciones.
+- Consultar el historial de actividad.
+- Corregir datos comerciales con registro de auditoría.
+
+No permitas que una acción administrativa borre el historial financiero.
+
+### 8. ESTADOS DE LAS SOLICITUDES Y SUSCRIPCIONES
+
+Implementa estados diferenciados:
+
+**Solicitud comercial:**
+- Borrador.
+- Enviada.
+- Pendiente de revisión.
+- Pendiente de pago.
+- Requiere información adicional.
+- Aprobada.
+- Rechazada.
+
+**Suscripción:**
+- Pendiente de activación.
+- Activa.
+- En periodo de renovación.
+- Pago fallido.
+- Vencida.
+- Cancelada.
+- Suspendida.
+
+No confundas la aprobación de una empresa con la confirmación de un pago.
+
+Si el negocio requiere verificación manual, el administrador debe poder aprobarlo antes de que se publique.
+
+### 9. PANEL EXCLUSIVO DEL PROPIETARIO DEL NEGOCIO
+
+Cuando la membresía y los requisitos comerciales estén satisfechos, habilita el panel del negocio.
+
+El propietario podrá:
+
+- Editar el perfil comercial.
+- Subir el logotipo y la portada.
+- Configurar horarios.
+- Crear, editar y desactivar productos.
+- Administrar precios y existencias.
+- Recibir y gestionar pedidos.
+- Consultar estadísticas.
+- Crear promociones dentro de los límites permitidos.
+- Configurar el WhatsApp comercial.
+- Administrar métodos de entrega disponibles.
+- Consultar su plan y estado de suscripción.
+- Ver facturas y pagos.
+- Cambiar su información de contacto.
+- Solicitar ayuda.
+
+El panel debe ser intuitivo y funcionar correctamente en móviles y computadoras.
+
+El propietario solo podrá administrar su propio negocio, incluso si intenta acceder directamente a una ruta o API de otro negocio.
+
+### 10. RENOVACIÓN, VENCIMIENTO Y CANCELACIÓN
+
+Configura la renovación mensual según el plan contratado.
+
+Antes de renovar, muestra al propietario el importe y las condiciones aplicables.
+
+Si la renovación automática está habilitada:
+- Procesa el cobro mediante el proveedor compatible.
+- Verifica el resultado.
+- Registra el pago.
+- Actualiza el periodo de la suscripción.
+- Envía una confirmación al propietario.
+
+Si el pago falla:
+- Registra el error.
+- Notifica al propietario.
+- Permite actualizar el método de pago.
+- Aplica el periodo de gracia definido por el administrador.
+- Suspende las funciones de pago solo según las reglas publicadas.
+
+Si se cancela:
+- Registra la fecha y el motivo, cuando se proporcione.
+- Informa de cuándo termina el acceso.
+- Respeta las condiciones de facturación y reembolso.
+- No elimines los productos, pedidos ni datos históricos del negocio.
+
+Permite definir si la cancelación surte efecto inmediatamente o al finalizar el periodo pagado, conforme a las condiciones acordadas.
+
+### 11. NOTIFICACIONES
+
+Envía notificaciones al propietario sobre:
+
+- Solicitud recibida.
+- Solicitud aprobada o rechazada.
+- Pago confirmado.
+- Membresía activada.
+- Renovación próxima.
+- Pago fallido.
+- Transferencia pendiente de verificación.
+- Suscripción vencida.
+- Cancelación confirmada.
+- Cambios importantes en las condiciones.
+
+El administrador debe recibir avisos de nuevas solicitudes, pagos que necesitan conciliación y suscripciones con problemas.
+
+Utiliza notificaciones internas y correo electrónico cuando estén configurados. WhatsApp puede utilizarse mediante una integración oficial y con los permisos necesarios.
+
+### 12. MODELO DE DATOS
+
+Inspecciona primero las tablas actuales y reutiliza las que ya cumplan esta función.
+
+Añade o adapta las entidades necesarias para:
+- Solicitudes comerciales.
+- Perfiles de negocio.
+- Planes de membresía.
+- Suscripciones.
+- Periodos de facturación.
+- Pagos de membresía.
+- Referencias de transferencia.
+- Historial de notificaciones.
+- Registros de auditoría.
+
+Cada registro debe tener identificadores estables, fechas de creación y actualización, relaciones coherentes y controles de acceso.
+
+Evita almacenar dos veces los mismos datos del propietario.
+
+Registra los importes con tipos numéricos apropiados, la moneda y las referencias del proveedor. No asumas que todos los negocios operarán en dólares: conserva la moneda de facturación y la moneda de operación cuando sean diferentes.
+
+Implementa protección contra notificaciones duplicadas, webhooks repetidos y activaciones dobles.
+
+### 13. SEGURIDAD Y PERMISOS
+
+Define roles independientes:
+- Administrador global.
+- Propietario del negocio.
+- Personal autorizado del negocio.
+- Repartidor.
+- Cliente.
+
+Solo el administrador global autorizado podrá modificar los planes generales, aprobar transferencias, cambiar los precios globales o alterar los estados administrativos de las suscripciones.
+
+Los propietarios podrán consultar sus propias facturas y gestionar su suscripción conforme a sus permisos.
+
+Los clientes normales no deben obtener acceso al panel comercial por registrarse como clientes.
+
+Valida cada operación en el backend y registra las acciones administrativas importantes.
+
+### 14. INTEGRACIÓN CON EL PROYECTO ACTUAL
+
+Conserva las funciones existentes de ConectaRD-AI, incluyendo:
+- Autenticación.
+- Perfiles.
+- Restaurantes y otros comercios.
+- Productos.
+- Pedidos.
+- Repartidores.
+- WhatsApp.
+- Inteligencia artificial.
+- Panel administrativo.
+- PostgreSQL/Supabase.
+- Render.
+- Configuración de identidad visual y logotipo.
+
+No reemplaces el servidor completo ni elimines las rutas existentes sin demostrar que es necesario.
+
+Crea migraciones incrementales y reversibles. Conserva los datos actuales y las variables de entorno de producción.
+
+### 15. PRUEBAS DE ACEPTACIÓN
+
+Comprueba que:
+
+1. Un propietario puede registrar su negocio.
+2. Puede guardar y recuperar su solicitud.
+3. Puede seleccionar la membresía de US$50 al mes.
+4. Puede seleccionar un método de pago realmente configurado.
+5. Un pago pendiente no activa la membresía.
+6. Un pago electrónico confirmado activa la suscripción según las reglas del sistema.
+7. Una transferencia requiere verificación fiable.
+8. El administrador ve las solicitudes y pagos.
+9. El negocio recibe acceso al panel correcto.
+10. Un propietario no puede acceder al negocio de otra persona.
+11. La renovación actualiza correctamente el periodo.
+12. Los pagos fallidos y cancelaciones se gestionan sin perder datos.
+13. Los avisos no se duplican.
+14. El sistema conserva los pedidos y productos actuales.
+15. El logotipo y los tres idiomas funcionan en el nuevo flujo.
+16. El despliegue funciona sin exponer secretos.
+
+### 16. ENTREGA
+
+Implementa esta funcionalidad por etapas, en una rama independiente.
+
+Entrega:
+- Análisis previo del repositorio.
+- Archivos modificados.
+- Migraciones necesarias.
+- Variables de entorno requeridas.
+- Configuración del proveedor de pagos.
+- Configuración de las renovaciones.
+- Pruebas ejecutadas.
+- Instrucciones de despliegue.
+- Lista de elementos que requieren aprobación o credenciales externas.
+
+No declares el módulo terminado hasta haber probado los flujos críticos.
+
+**PRIORIDAD:** cada propietario debe poder registrar su negocio, contratar la membresía comercial de US$50 mensuales, pagar de forma verificable y obtener acceso seguro a su propio espacio, mientras el administrador mantiene el control central de las suscripciones y las finanzas.
+
+### Cómo funcionará para ti
+
+1\. El dueño se registra
+
+Introduce sus datos y los de su restaurante, farmacia o tienda.
+
+2\. Contrata y paga la membresía
+
+US$50 mensuales, con los métodos de pago que hayas configurado y autorizado.
+
+3\. Se verifica el pago
+
+El sistema confirma la operación y avisa al administrador.
+
+4\. Obtiene su panel comercial
+
+Configura su logo, catálogo, precios, horarios y pedidos sin acceder a los datos de otros negocios.
+
+Una recomendación importante: para las transferencias bancarias, no actives automáticamente la membresía porque el propietario suba un comprobante. Primero verifica que el dinero haya llegado. Para pagos recurrentes con tarjeta, utiliza un proveedor compatible con suscripciones.
+
+Así mantienes el control de los ingresos y evitas conceder acceso a negocios que todavía no han pagado.

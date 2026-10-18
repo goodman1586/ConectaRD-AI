@@ -1,0 +1,10 @@
+CONECTEK 9.1.0 — PAQUETE ORGANIZADO
+
+1. Sube el contenido de la carpeta Conectek-gloria-upgrade a la raíz de la rama gloria-a-Diod.
+2. Conserva server.js, package.json, render.yaml y la carpeta public/ en esa raíz.
+3. En Render, despliega la rama gloria-a-Diod. Si usas Blueprint, render.yaml genera SESSION_SECRET.
+4. En Environment configura DATABASE_URL y ADMIN_KEY. No subas secretos ni un .env real a GitHub.
+5. El logo está en public/assets/conectek-logo.png. La sección Identidad visual del panel permite cambiarlo por URL HTTPS.
+6. ESPECIFICACIONES contiene los módulos 18, 19 y 20 originales como referencia; no todos sus módulos de pagos, rutas y liquidaciones están implementados en esta versión.
+
+La aplicación mantiene las rutas actuales: /cliente, /negocio, /repartidor y /admin.

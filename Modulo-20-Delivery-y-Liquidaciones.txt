@@ -1,0 +1,535 @@
+# MÓDULO 20 — PANEL DE CONTROL GLOBAL, REPARTIDORES, TARIFAS INTELIGENTES Y LIQUIDACIONES
+## ConectaRD-AI — Integración con el proyecto existente
+
+### 1. OBJETIVO GENERAL
+
+Amplía el proyecto existente ConectaRD-AI para proporcionar al administrador global un control completo sobre la operación de la plataforma.
+
+El sistema debe gestionar:
+- Clientes.
+- Propietarios de negocios.
+- Membresías comerciales.
+- Restaurantes, supermercados, farmacias y tiendas.
+- Repartidores independientes.
+- Repartidores propios de cada negocio.
+- Pedidos y asignación de entregas.
+- Cálculo automático de distancias y tarifas.
+- Pagos en efectivo y pagos electrónicos.
+- Comisiones y liquidaciones.
+- Datos de contacto y métodos de cobro.
+- Notificaciones sonoras.
+- Zonas de servicio.
+- Configuración general de la plataforma.
+
+**REGLA PRINCIPAL:** conservar las funciones, rutas, datos y controles de seguridad existentes. Antes de programar, inspeccionar el repositorio y trabajar en una rama de desarrollo independiente. No sustituir todo el código ni eliminar funciones para implementar este módulo.
+
+### 2. PANEL DE ADMINISTRACIÓN GLOBAL
+
+Crea una interfaz administrativa profesional, adaptable a computadoras y teléfonos.
+
+El panel principal debe mostrar indicadores como:
+
+- Pedidos nuevos, en preparación, asignados, en camino y entregados.
+- Pedidos cancelados y con incidencias.
+- Clientes registrados.
+- Negocios activos y pendientes de aprobación.
+- Membresías activas, vencidas y pendientes de pago.
+- Repartidores activos, disponibles y ocupados.
+- Ingresos por membresías.
+- Comisiones de la plataforma.
+- Tarifas de entrega cobradas.
+- Pagos electrónicos pendientes de liquidación.
+- Efectivo pendiente de conciliación.
+- Reembolsos y reclamaciones.
+- Pedidos sin repartidor asignado.
+
+Incluye filtros por fecha, ciudad, negocio, repartidor, estado y método de pago.
+
+Permite exportar informes autorizados para conciliación y contabilidad.
+
+### 3. CONTROL ADMINISTRATIVO COMPLETO
+
+El administrador global autorizado debe poder crear, consultar, editar, suspender, reactivar y eliminar registros cuando corresponda.
+
+Implementa controles para:
+
+- Clientes y sus perfiles.
+- Negocios y sus membresías.
+- Productos y categorías.
+- Repartidores y sus documentos de incorporación.
+- Pedidos y asignaciones.
+- Tarifas y zonas de entrega.
+- Métodos de pago.
+- Comisiones.
+- Liquidaciones.
+- Promociones.
+- Configuración de la plataforma.
+
+Para operaciones financieras y registros históricos, utiliza cancelaciones, reversos o eliminación lógica cuando sea necesario conservar la trazabilidad. No borres transacciones confirmadas ni pedidos históricos de forma que se pierda el registro contable.
+
+Cada acción administrativa importante debe registrar quién la realizó, cuándo, qué cambió y cuál era el estado anterior.
+
+Mantén la autenticación y autorización actuales. No permitas acceso al panel únicamente por conocer su URL.
+
+### 4. REGISTRO Y PERFIL DEL REPARTIDOR
+
+Crea un proceso de incorporación de repartidores que incluya:
+
+**Información personal**
+- Nombre completo.
+- Teléfono.
+- WhatsApp, cuando corresponda.
+- Correo electrónico.
+- País y ciudad.
+- Fotografía de perfil opcional.
+- Tipo de vehículo.
+- Zona de trabajo.
+- Disponibilidad.
+
+**Información para recibir pagos**
+- Método de cobro preferido.
+- Cuenta comercial de PayPal, si el proveedor admite el caso.
+- Cuenta bancaria compatible.
+- Otros métodos de cobro habilitados por el administrador.
+- Estado de verificación de la cuenta de cobro.
+- Moneda de liquidación.
+
+No guardes contraseñas bancarias, números completos de tarjetas ni credenciales financieras en texto plano.
+
+Utiliza el proceso de incorporación seguro del proveedor de pagos para recoger los datos necesarios para transferir fondos. El administrador debe ver el estado de verificación y los datos enmascarados permitidos, no las credenciales privadas.
+
+El repartidor podrá consultar:
+- Perfil y datos de contacto.
+- Estado de incorporación.
+- Pedidos disponibles.
+- Pedidos aceptados.
+- Entregas en curso.
+- Historial de entregas.
+- Ganancias por entrega.
+- Propinas.
+- Pagos pendientes.
+- Pagos completados.
+- Efectivo cobrado.
+- Liquidaciones.
+- Incidencias.
+- Configuración de disponibilidad.
+
+Un repartidor no podrá recibir asignaciones pagadas ni retirar fondos si no cumple los requisitos de incorporación y verificación definidos para su modalidad.
+
+### 5. SISTEMA DE DOS MODALIDADES DE ENTREGA
+
+Implementa dos modalidades independientes y configurables por negocio.
+
+**MODALIDAD A: REPARTIDORES DE CONECTARD-AI**
+
+El negocio utiliza la red de repartidores de la plataforma.
+
+Flujo:
+1. El cliente realiza el pedido.
+2. El negocio confirma el pedido.
+3. Se calcula el coste estimado de entrega.
+4. Se publica la oferta para repartidores elegibles.
+5. Los repartidores reciben una notificación.
+6. El primer repartidor que consiga aceptar la oferta de forma válida queda asignado.
+7. El sistema confirma la asignación.
+8. El repartidor recoge el pedido y lo entrega.
+9. El sistema registra la finalización y calcula las cantidades correspondientes.
+
+El negocio puede elegir esta modalidad desde su panel, siempre que esté habilitado por el administrador.
+
+**MODALIDAD B: REPARTIDORES PROPIOS DEL NEGOCIO**
+
+El negocio utiliza sus propios repartidores.
+
+Debe permitir:
+- Seleccionar un repartidor propio.
+- Gestionar su disponibilidad.
+- Asignarle pedidos.
+- Consultar el estado de la entrega.
+- Registrar el coste de envío definido por el negocio.
+- Configurar si el envío es gratuito o si se cobra al cliente.
+
+En esta modalidad, no se debe aplicar automáticamente la tarifa de la red de ConectaRD-AI ni pagar una comisión de entrega a un repartidor externo si no corresponde.
+
+El administrador puede establecer las reglas de suscripción, comisiones y excepciones aplicables a cada negocio.
+
+### 6. CÁLCULO INTELIGENTE DE DISTANCIA Y PRECIO
+
+Crea un módulo llamado «Motor de tarifas de entrega».
+
+El sistema debe calcular el precio utilizando la distancia real de la ruta por carretera o por el medio de transporte seleccionado, cuando el proveedor de mapas lo permita.
+
+No utilices exclusivamente la distancia en línea recta para calcular el precio definitivo.
+
+Obtén:
+- Ubicación del negocio.
+- Dirección de entrega del cliente.
+- Coordenadas geográficas validadas.
+- Distancia de la ruta.
+- Tiempo estimado de viaje.
+- Zona de servicio.
+- Disponibilidad de repartidores.
+- Tipo de vehículo, cuando corresponda.
+
+Si no existe una ruta válida, informa al usuario y no inventes una distancia.
+
+#### Fórmula inicial configurable
+
+Utiliza como punto de partida:
+
+**Tarifa de entrega = tarifa base + componente por distancia + componente por tiempo + recargos aplicables − descuentos de envío.**
+
+Una representación matemática posible es:
+
+Tarifa = B + (D × K) + (T × M) + R − S
+
+Donde:
+
+- B = tarifa base.
+- D = distancia de ruta en kilómetros.
+- K = tarifa por kilómetro.
+- T = tiempo estimado de ruta en minutos.
+- M = componente opcional por minuto.
+- R = recargos autorizados.
+- S = descuento de envío aplicable.
+
+Esta fórmula es una configuración inicial, no una tarifa universal. Debe poder modificarse desde el panel administrativo.
+
+Incluye:
+- Precio mínimo de entrega.
+- Precio máximo opcional.
+- Tarifa por kilómetro.
+- Componente por tiempo, opcional.
+- Recargo por zona.
+- Recargo por distancia adicional.
+- Descuentos promocionales.
+- Envío gratuito.
+- Redondeo de precios.
+- Límites de distancia.
+- Reglas por tipo de vehículo.
+- Reglas por negocio y categoría.
+
+No cobres automáticamente recargos por alta demanda, mal tiempo, peajes u otros conceptos si no han sido habilitados, calculados y comunicados correctamente.
+
+Antes de confirmar el pedido, muestra al cliente el importe exacto del envío.
+
+### 7. CONFIGURACIÓN DEL MOTOR DE TARIFAS EN EL PANEL
+
+El administrador debe poder configurar las tarifas sin modificar el código.
+
+Crea un formulario con:
+- País.
+- Ciudad.
+- Zona.
+- Moneda.
+- Tarifa base.
+- Precio por kilómetro.
+- Precio por minuto, si se utiliza.
+- Precio mínimo.
+- Precio máximo opcional.
+- Distancia máxima.
+- Recargos.
+- Descuentos.
+- Tipo de vehículo.
+- Modalidad de entrega.
+- Horario de vigencia.
+- Fecha de inicio y fin.
+- Estado activo o inactivo.
+
+Permite simular un recorrido entre un negocio y una dirección de entrega antes de publicar una tarifa.
+
+Muestra en la simulación:
+- Distancia calculada.
+- Tiempo estimado.
+- Tarifa base.
+- Componentes de cálculo.
+- Descuentos y recargos.
+- Total final.
+
+Guarda una copia de las reglas utilizadas para cada pedido, de modo que un cambio posterior de tarifas no altere retroactivamente el precio acordado.
+
+### 8. PRECIO TRANSPARENTE PARA EL CLIENTE
+
+En la pantalla de pago, muestra un desglose claro:
+
+- Precio de cada producto.
+- Cantidades.
+- Subtotal.
+- Descuentos.
+- Impuestos aplicables.
+- Tarifa de entrega.
+- Otras tarifas autorizadas, si existen.
+- Propina voluntaria.
+- Total a pagar.
+
+Ejemplo ilustrativo:
+
+Producto: US$20.00
+Envío: US$4.50
+Impuestos y otros conceptos aplicables: calculados según las reglas correspondientes
+Total: calculado automáticamente.
+
+El ejemplo no debe utilizarse como tarifa real de producción.
+
+No sumes el envío dos veces ni confundas los ingresos de ConectaRD-AI con el dinero que corresponde al restaurante o al repartidor.
+
+### 9. PUBLICACIÓN Y ASIGNACIÓN DE PEDIDOS
+
+Cuando un pedido esté listo para asignarse, muestra una oferta a los repartidores elegibles.
+
+La oferta debe incluir:
+- Nombre o referencia del negocio.
+- Zona de recogida.
+- Zona de entrega.
+- Distancia estimada.
+- Tiempo estimado.
+- Pago estimado del repartidor.
+- Tipo de pago del pedido.
+- Requisitos especiales de la entrega.
+
+Protege la dirección exacta y los datos del cliente. Antes de aceptar, muestra solo la información necesaria para evaluar la oferta. Facilita los datos completos al repartidor asignado cuando sean necesarios para realizar el servicio.
+
+Implementa una aceptación atómica en el backend: varios repartidores pueden ver la misma oferta, pero solo uno debe conseguir la asignación.
+
+El primer repartidor cuya aceptación válida se confirme en el servidor gana el pedido. Los demás deben recibir un aviso de que la oferta ya no está disponible.
+
+Utiliza transacciones de base de datos o mecanismos equivalentes para evitar asignaciones dobles.
+
+Si no se acepta una oferta durante el tiempo configurado:
+- Vuelve a publicarla.
+- Amplía el grupo de repartidores elegibles cuando corresponda.
+- Informa al negocio y al administrador.
+- Permite asignación manual autorizada.
+
+Si el repartidor cancela después de aceptar, registra el motivo y aplica las reglas de reasignación correspondientes.
+
+### 10. NOTIFICACIONES SONORAS Y EN TIEMPO REAL
+
+El panel del repartidor debe recibir avisos en tiempo real de nuevos pedidos.
+
+Cuando haya una oferta disponible:
+- Reproducir un sonido de notificación.
+- Mostrar una alerta visual.
+- Presentar el precio estimado.
+- Mostrar la distancia y el tiempo de viaje.
+- Mostrar la ubicación de recogida y la zona de entrega.
+- Incluir un botón «Aceptar pedido».
+- Incluir un botón «Rechazar».
+
+Permite activar y desactivar el sonido.
+
+Solicita los permisos de notificaciones necesarios y ofrece una alternativa visual si el dispositivo bloquea el sonido.
+
+No dependas exclusivamente de una pestaña abierta. Implementa notificaciones push cuando la aplicación y el dispositivo lo permitan.
+
+Usa un canal en tiempo real compatible con la arquitectura actual y controla la autenticación de cada conexión.
+
+Evita sonidos repetidos innecesarios y notificaciones de ofertas que ya han expirado.
+
+### 11. FLUJO DE ENTREGA Y ESTADOS
+
+Implementa los siguientes estados, adaptándolos a los que ya existan:
+
+- Pedido confirmado.
+- En preparación.
+- Listo para recoger.
+- Buscando repartidor.
+- Repartidor asignado.
+- En recogida.
+- Recogido.
+- En camino.
+- Entregado.
+- Incidencia.
+- Cancelado.
+
+Registra los cambios con fecha, hora y usuario responsable.
+
+Cuando sea necesario, utiliza códigos de confirmación de entrega para reducir entregas incorrectas.
+
+El cliente debe consultar el estado desde su perfil.
+
+El negocio debe ver el estado de sus pedidos.
+
+El administrador debe tener acceso global autorizado.
+
+El repartidor solo debe ver las entregas que le correspondan o las ofertas disponibles para su modalidad.
+
+### 12. PAGOS EN EFECTIVO
+
+Si el cliente selecciona efectivo:
+
+1. El sistema confirma que el negocio permite este método.
+2. Se muestra el total que debe pagar el cliente.
+3. El repartidor ve el importe que debe cobrar.
+4. El repartidor registra la recepción del dinero al entregar.
+5. El pedido se marca como cobrado solo después de la confirmación correspondiente.
+6. El sistema registra cuánto corresponde al negocio, al repartidor y a ConectaRD-AI.
+7. Se actualiza el libro de movimientos de efectivo.
+
+No asumas que todo el efectivo cobrado pertenece al repartidor.
+
+Distingue entre:
+- Dinero cobrado al cliente.
+- Ganancia del repartidor.
+- Importe correspondiente al negocio.
+- Comisión de la plataforma.
+- Propina.
+- Otros conceptos autorizados.
+
+Si el repartidor recibe efectivo que incluye importes de terceros, calcula el saldo que debe entregar o conciliar posteriormente.
+
+El panel administrativo debe mostrar el efectivo pendiente de conciliación y permitir registrar entregas de efectivo a la empresa o al negocio.
+
+### 13. PAGOS ELECTRÓNICOS Y LIQUIDACIÓN DEL REPARTIDOR
+
+Si el cliente paga en línea:
+
+1. El proveedor de pagos confirma la transacción.
+2. El sistema registra el pago.
+3. Se calcula el importe correspondiente al negocio.
+4. Se calcula la remuneración del repartidor.
+5. Se calcula la comisión de la plataforma.
+6. Se registran las cantidades pendientes de liquidación.
+7. El pago al repartidor se procesa mediante el mecanismo autorizado del proveedor.
+8. Se registra la confirmación o el fallo de la transferencia.
+
+Permite métodos de liquidación compatibles con el proveedor, como transferencias bancarias y PayPal cuando esté admitido para esa cuenta y esa operación.
+
+No envíes automáticamente dinero a una cuenta bancaria sin la incorporación, verificación y autorización necesarias.
+
+Si el proveedor no permite realizar la transferencia directamente, muestra el importe pendiente y proporciona un procedimiento administrativo de liquidación.
+
+Evita que un pedido cancelado, una devolución o una notificación duplicada genere un pago doble.
+
+### 14. PANEL FINANCIERO DEL REPARTIDOR
+
+Cada repartidor debe disponer de un resumen que muestre:
+
+- Entregas completadas.
+- Importe bruto de las entregas.
+- Comisiones o deducciones aplicables, cuando correspondan.
+- Propinas.
+- Ganancias netas estimadas.
+- Pagos pendientes.
+- Pagos enviados.
+- Transferencias fallidas.
+- Efectivo recibido.
+- Efectivo pendiente de conciliar.
+- Historial de liquidaciones.
+
+Separa claramente las ganancias confirmadas de las cantidades estimadas.
+
+Permite consultar cada operación individualmente y descargar un comprobante cuando esté disponible.
+
+No denomines «saldo disponible» a un importe que todavía no puede retirarse o transferirse.
+
+### 15. CONFIGURACIÓN DE REPARTIDORES PROPIOS
+
+Cuando un negocio utilice repartidores propios:
+- El administrador del negocio podrá gestionar su equipo dentro de los permisos asignados.
+- Podrá asignar pedidos a sus propios repartidores.
+- Podrá configurar la tarifa de entrega aplicable.
+- Podrá ofrecer envío gratuito.
+- Podrá definir las reglas de cobro según su contrato y modalidad.
+- Podrá consultar el estado de sus entregas.
+
+No apliques automáticamente las liquidaciones de la red externa de repartidores.
+
+Mantén la separación entre los fondos, los pedidos y los permisos del negocio y los de ConectaRD-AI.
+
+### 16. CANCELACIONES, INCIDENCIAS Y RECLAMACIONES
+
+Crea un módulo para:
+- Repartidor que no llega.
+- Dirección incorrecta.
+- Cliente ausente.
+- Negocio cerrado.
+- Pedido incompleto.
+- Producto dañado.
+- Pago pendiente.
+- Error en la tarifa.
+- Cancelación del pedido.
+- Disputa sobre el importe del envío.
+
+Permite al administrador revisar la incidencia, consultar los registros y aplicar una solución autorizada.
+
+Las modificaciones financieras deben dejar un registro de auditoría.
+
+No realices devoluciones automáticas sin comprobar el estado de la transacción y las reglas del proveedor.
+
+### 17. MODELO DE DATOS Y SEGURIDAD
+
+Inspecciona las tablas existentes antes de crear nuevas.
+
+Adapta el esquema para representar:
+- Perfil y estado del repartidor.
+- Métodos de liquidación y estado de verificación.
+- Ubicación y disponibilidad.
+- Ofertas de entrega.
+- Asignaciones.
+- Historial de estados.
+- Configuración de tarifas.
+- Distancias y tiempos calculados.
+- Desglose de importes por pedido.
+- Movimientos de efectivo.
+- Liquidaciones.
+- Incidencias.
+- Notificaciones.
+
+Utiliza transacciones, restricciones, claves foráneas, índices y controles de acceso.
+
+Las actualizaciones de tarifas no deben alterar pedidos anteriores.
+
+Protege las coordenadas y las direcciones. Limita el acceso a la ubicación en tiempo real a los fines operativos necesarios.
+
+No compartas la ubicación del repartidor permanentemente con clientes que no tengan una entrega activa autorizada.
+
+Mantén las credenciales en variables de entorno y nunca expongas secretos administrativos en el frontend.
+
+### 18. PRUEBAS OBLIGATORIAS
+
+Verifica que:
+1. El administrador puede configurar tarifas sin editar código.
+2. La distancia se calcula mediante una ruta válida.
+3. El cliente ve el coste de envío antes de confirmar.
+4. El pedido no se asigna a dos repartidores.
+5. El primer repartidor cuya aceptación se confirma obtiene la asignación.
+6. El sonido funciona cuando el dispositivo lo permite.
+7. El cliente puede elegir efectivo o pago electrónico según las opciones disponibles.
+8. El efectivo cobrado se concilia correctamente.
+9. Las liquidaciones electrónicas reflejan el estado real del proveedor.
+10. El negocio puede utilizar sus propios repartidores.
+11. Los pedidos históricos conservan sus importes originales.
+12. El administrador puede revisar incidencias y corregir estados mediante acciones autorizadas.
+13. Los permisos de clientes, negocios, repartidores y administradores se mantienen separados.
+14. Las funciones actuales de ConectaRD-AI siguen funcionando.
+15. La aplicación funciona en móviles y computadoras.
+16. Los datos financieros y las ubicaciones están protegidos.
+
+### 19. FORMA DE IMPLEMENTACIÓN
+
+Trabaja por etapas:
+1. Inspección de la arquitectura y del código existente.
+2. Diseño de los permisos y del modelo de datos.
+3. Configuración del motor de tarifas.
+4. Flujo de ofertas y asignación.
+5. Perfil y panel del repartidor.
+6. Pagos en efectivo y conciliación.
+7. Integración de liquidaciones electrónicas.
+8. Notificaciones en tiempo real.
+9. Integración con el panel administrativo.
+10. Pruebas, documentación y despliegue.
+
+Implementa los cambios en una rama de desarrollo. No publiques cambios de producción hasta verificar las funciones críticas.
+
+Entrega los archivos modificados, las migraciones, las variables de entorno necesarias, los resultados de las pruebas y las instrucciones de configuración.
+
+**PRIORIDAD FINAL:** el administrador debe mantener el control global, los clientes deben conocer el precio total antes de comprar, los repartidores deben recibir ofertas claras y cobrar correctamente, y cada negocio debe poder elegir entre la red de repartidores de ConectaRD-AI o su propia logística.
+
+### Dos decisiones importantes que conviene fijar
+
+1\. Cómo se calcula el envío. Mi recomendación es utilizar la distancia real de la ruta, una tarifa base y un precio por kilómetro, con un mínimo configurable. Después podrás ajustar las tarifas desde el panel según la ciudad, el tipo de negocio y los costes reales.
+
+2\. Cómo se asigna el pedido. Puedes conservar tu regla del primer repartidor que acepte, pero la aceptación debe confirmarse en el servidor. Así evitas que dos repartidores crean que recibieron el mismo pedido.
+
+Y hay un detalle financiero esencial: cuando el cliente

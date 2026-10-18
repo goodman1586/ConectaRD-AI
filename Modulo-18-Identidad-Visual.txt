@@ -1,0 +1,115 @@
+Bueno como puedo saber necesito que haga lo siguienteClaro. Lo que necesitas es que el logotipo de ConectaRD-AI forme parte de toda la aplicación, no solamente de la pantalla de inicio. También debes poder administrarlo desde el panel de control y cambiar su tamaño según el lugar donde aparezca, sin que pierda calidad ni se deforme.
+
+Añade este complemento al final del prompt anterior y envíalo junto con él a Jotex.
+
+## 18. IDENTIDAD VISUAL GLOBAL Y SISTEMA DE LOGOTIPOS DE CONECTARD-AI
+
+### A. Logotipo obligatorio en toda la aplicación
+
+El logotipo oficial de ConectaRD-AI debe estar integrado en toda la experiencia visual de la plataforma.
+
+Debe aparecer, según corresponda, en:
+
+- Pantalla de bienvenida y carga.
+- Inicio de sesión y registro con Google.
+- Encabezado de la aplicación.
+- Página principal.
+- Menús y navegación.
+- Carrito y proceso de pago.
+- Confirmación y seguimiento de pedidos.
+- Perfil del cliente.
+- Panel administrativo.
+- Panel de restaurantes y demás negocios.
+- Panel de repartidores.
+- Notificaciones y correos electrónicos.
+- Facturas, recibos y comprobantes generados.
+- Página de promociones y campañas publicitarias.
+- Página web pública.
+- Código QR y materiales digitales de la marca.
+- Icono de la aplicación cuando corresponda.
+
+No añadas el logotipo a cada producto o fotografía de un restaurante de forma invasiva. En esos casos, la identidad de ConectaRD-AI debe mostrarse en los elementos de la interfaz, manteniendo intactas las imágenes de los negocios.
+
+### B. Sistema de logotipos adaptables
+
+Crea un componente reutilizable para mostrar el logotipo en diferentes tamaños y contextos.
+
+Debe admitir:
+
+- Versión completa con símbolo y nombre.
+- Versión compacta.
+- Símbolo independiente para espacios pequeños.
+- Versión horizontal para encabezados.
+- Versión adecuada para fondos claros.
+- Versión adecuada para fondos oscuros, si existe una variante oficial.
+- Icono cuadrado para la aplicación y el favicon.
+
+El logotipo debe mantener sus proporciones, resolución y calidad. Nunca debe estirarse, aplastarse, recortarse ni pixelarse de forma innecesaria.
+
+Utiliza archivos vectoriales SVG cuando sean seguros y estén disponibles, o imágenes PNG de alta resolución. Optimiza los recursos para móviles sin perder calidad.
+
+No inventes un nuevo logotipo ni sustituyas el original. Si no encuentras el archivo oficial en el repositorio, solicita que se proporcione antes de reemplazarlo por otro.
+
+### C. Administración del logotipo desde el panel de control
+
+Añade una sección llamada “Identidad visual” dentro del panel administrativo.
+
+Debe permitir, a los administradores autorizados:
+
+- Subir el logotipo oficial.
+- Previsualizarlo antes de publicarlo.
+- Elegir la variante adecuada para cada espacio.
+- Ajustar el tamaño dentro de límites seguros.
+- Configurar el ancho máximo en encabezados.
+- Definir el tamaño del icono en dispositivos móviles.
+- Seleccionar una versión para fondos claros u oscuros.
+- Sustituir un archivo anterior sin modificar el código fuente.
+- Restaurar una versión anterior.
+- Verificar cómo se muestra en móvil, tableta y computadora.
+
+Los cambios deben aplicarse de manera consistente a toda la aplicación y conservarse después de actualizar la página o reiniciar el servicio.
+
+Guarda las configuraciones en la base de datos y los archivos en un almacenamiento de imágenes apropiado. No guardes archivos grandes como cadenas de texto en tablas si existe una alternativa de almacenamiento adecuada.
+
+Restringe la modificación del logotipo a usuarios administrativos autorizados.
+
+### D. Reglas de diseño y rendimiento
+
+- Mantén una apariencia coherente con los colores y la identidad de ConectaRD-AI.
+- Evita que el logotipo desplace el contenido o bloquee botones.
+- En móviles, utiliza tamaños compactos.
+- En pantallas grandes, permite una versión más amplia.
+- Mantén una alternativa de texto accesible.
+- Utiliza una imagen de reserva si el recurso no se carga.
+- Evita descargas repetidas innecesarias y optimiza la caché.
+- No permitas que un administrador introduzca código ejecutable mediante la carga de imágenes.
+- Valida el formato, tamaño y tipo real de los archivos subidos.
+
+### E. Comprobaciones finales
+
+Antes de dar el trabajo por terminado, comprueba que el logotipo:
+
+1. Aparece correctamente en todas las pantallas indicadas.
+2. Mantiene la proporción en todos los tamaños.
+3. No se superpone con la navegación, el carrito ni otros controles.
+4. Funciona en Android, iPhone, tabletas y computadoras.
+5. Puede actualizarse desde el panel administrativo.
+6. Se conserva después de cerrar y volver a abrir la aplicación.
+7. No reemplaza los logotipos propios de los restaurantes ni altera sus fotografías.
+8. Mantiene una identidad visual consistente en toda la plataforma.
+
+Integra esta funcionalidad en la arquitectura existente, reutilizando componentes y estilos cuando sea posible. No reconstruyas la aplicación ni elimines funciones actuales para implementar el sistema de identidad visual.
+
+### ¿Qué más conviene añadir?
+
+Te recomiendo considerar también estos cuatro elementos para que ConectaRD-AI se vea como una plataforma profesional:
+
+* Splash screen: pantalla inicial con el logotipo y una animación discreta.
+
+* Favicon e icono móvil: para que la marca aparezca en la pestaña del navegador y en la pantalla del teléfono.
+
+* Panel de identidad visual: para cambiar logo, colores y elementos de marca sin editar el código.
+
+* PWA instalable: permitir que el cliente instale la aplicación web en su teléfono, si la arquitectura lo permite.
+
+Una última cosa: para que Jotex pueda incorporar el logotipo original, necesita encontrarlo dentro del proyecto o recibir el archivo. Si me envías el logo actual de ConectaRD-AI, puedo ayudarte a definir las variantes y tamaños que conviene utilizar.
