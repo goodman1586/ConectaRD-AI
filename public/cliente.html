@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#102a43"><title>Cliente · Conectek</title>
+  <link rel="icon" type="image/png" href="/assets/conectek-logo.png"><link rel="stylesheet" href="/common.css">
+</head>
+<body class="customer-page">
+<header class="customer-header">
+  <a class="brand-lockup" href="/cliente" aria-label="Conectek"><img class="brand-logo" src="/assets/conectek-logo.png" alt="Conectek"></a>
+  <nav class="customer-nav" aria-label="Navegación del cliente">
+    <span class="customer-badge" data-i18n="clientArea">🛒 Área de cliente</span>
+    <label class="language-control"><span class="sr-only" data-i18n="language">Idioma</span><select id="language" aria-label="Language"><option value="es">🇩🇴 Español</option><option value="ht">🇭🇹 Kreyòl</option><option value="en">🇺🇸 English</option></select></label>
+    <a class="profile-link" href="#customer-profile" data-i18n="myProfile">Mi perfil</a>
+  </nav>
+</header>
+<main class="customer-main">
+  <section class="profile-card" id="customer-profile" aria-labelledby="profileTitle">
+    <div class="profile-heading"><div><p class="eyebrow" data-i18n="profileEyebrow">Tu experiencia</p><h1 id="profileTitle" data-i18n="profileTitle">Mi perfil</h1><p class="muted" data-i18n="profileDescription">Guarda tus datos en este dispositivo para completar tus pedidos más rápido.</p></div><span class="profile-avatar" aria-hidden="true">👤</span></div>
+    <div class="profile-fields"><label><span data-i18n="nameLabel">Nombre</span><input id="profileCustomer" maxlength="80" autocomplete="name" data-i18n-placeholder="namePlaceholder" placeholder="Tu nombre"></label><label><span data-i18n="phoneLabel">WhatsApp o teléfono</span><input id="profilePhone" maxlength="30" inputmode="tel" autocomplete="tel" data-i18n-placeholder="phonePlaceholder" placeholder="Tu número de contacto"></label><button class="soft profile-save" id="saveProfile" type="button" data-i18n="saveProfile">Guardar mis datos</button></div>
+    <p id="profileMsg" class="profile-feedback" role="status" aria-live="polite" data-i18n="profileLocalNote">Perfil local · no requiere crear una cuenta.</p>
+  </section>
+  <div id="tracker" class="tracker hidden"></div>
+  <section class="card customer-section" id="business-picker"><div class="section-heading"><div><p class="eyebrow" data-i18n="marketplace">Conectek Marketplace</p><h2 data-i18n="chooseBusiness">Elige un negocio</h2><p class="muted" data-i18n="chooseBusinessHint">Encuentra productos y realiza tu pedido de forma sencilla.</p></div><div class="carousel-controls"><button class="soft" type="button" data-scroll="business-track" data-direction="-1" aria-label="Negocios anteriores">←</button><button class="soft" type="button" data-scroll="business-track" data-direction="1" aria-label="Más negocios">→</button></div></div><div id="business-track" class="business-track" aria-label="Negocios disponibles"></div></section>
+  <div id="storefront" class="hidden customer-storefront">
+    <div id="business" class="card business-summary"></div><div id="promo" class="card hidden"></div>
+    <section class="card customer-section"><div class="section-heading"><div><p class="eyebrow" data-i18n="freshForYou">Lo que buscas</p><h2 data-i18n="catalog">Catálogo</h2></div></div><div id="products"></div></section>
+    <section id="juice-section" class="card hidden customer-section"><h2 data-i18n="juices">🥤 Jugos</h2><div id="juices"></div></section>
+    <div class="checkout-grid">
+      <section class="card customer-section"><p class="eyebrow" data-i18n="yourSelection">Tu selección</p><h2 data-i18n="yourOrder">🧾 Tu pedido</h2><div id="cart"></div><p class="total"><span data-i18n="total">Total</span><b id="total">—</b></p></section>
+      <section class="card customer-section"><p class="eyebrow" data-i18n="almostDone">Casi listo</p><h2 data-i18n="deliveryDetails">📍 Datos de entrega</h2>
+        <label for="customer" data-i18n="nameLabel">Nombre</label><input id="customer" placeholder="Tu nombre" maxlength="80" autocomplete="name">
+        <label for="phone" data-i18n="phoneLabel">WhatsApp o teléfono</label><input id="phone" placeholder="Tu número de contacto" maxlength="30" inputmode="tel" autocomplete="tel">
+        <label for="deliveryType" data-i18n="deliveryMode">Modalidad</label><select id="deliveryType"><option value="pickup" data-i18n="pickup">Recoger en la tienda</option><option value="delivery" data-i18n="delivery">Delivery a domicilio</option></select>
+        <div id="deliveryFields" class="hidden"><button class="primary full-button" id="gps" type="button" data-i18n="shareLocation">📍 Compartir mi ubicación</button><p id="gpsmsg" class="muted" data-i18n="locationPending">Ubicación pendiente.</p>
+        <label for="address" data-i18n="addressLabel">Dirección o referencia</label><input id="address" placeholder="Dirección, sector, referencia" maxlength="300">
+        <button class="soft" id="maps" type="button" data-i18n="openMaps">🗺️ Abrir Google Maps</button>
+        <label for="notes" data-i18n="deliveryNotes">Instrucciones para el repartidor</label><textarea id="notes" placeholder="Instrucciones para el repartidor" maxlength="500"></textarea></div>
+        <label for="paymentMethod" data-i18n="paymentMethod">Método de pago</label><select id="paymentMethod"></select>
+        <div id="quote" class="item hidden" aria-live="polite"></div>
+        <button class="green full-button" id="order" type="button" data-i18n="confirmOrder">🚚 Confirmar pedido</button><div id="msg" class="muted" aria-live="polite"></div>
+      </section>
+    </div>
+    <section class="card customer-section"><p class="eyebrow" data-i18n="needHelp">¿Necesitas ayuda?</p><h2 data-i18n="businessAssistant">🤖 Asistente del negocio</h2><div id="chat" class="chat"></div><div class="question-row"><input id="question" data-i18n-placeholder="askPlaceholder" placeholder="Pregunta sobre productos, precios o dirección..." maxlength="500"><button class="primary" id="ask" type="button" data-i18n="askButton">Preguntar</button></div></section>
+  </div>
+</main>
+<script src="/js/common.js"></script><script src="/js/cliente.js"></script>
+</body></html>
