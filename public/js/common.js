@@ -2,7 +2,9 @@
 (() => {
   const $ = id => document.getElementById(id);
   const esc = x => String(x ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
-  const money = n => 'RD$' + Number(n || 0).toLocaleString('es-DO');
+  let currency = 'DOP';
+  const money = (n, curr = currency) => new Intl.NumberFormat(curr === 'DOP' ? 'es-DO' : curr === 'HTG' ? 'fr-HT' : 'en-US', { style: 'currency', currency: curr }).format(Number(n || 0));
+  const configReady = fetch('/api/config', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(c => { if (c?.currency) currency = c.currency; return currency; }).catch(() => currency);
   const safeUrl = u => (/^https?:\/\//i.test(u || '') ? u : '');
   const waNumber = raw => {
     let d = String(raw || '').replace(/\D/g, '');
@@ -33,6 +35,21 @@
   }
 
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+
+  async function loadBrandIdentity() {
+    try {
+      const r = await fetch('/api/brand', { cache: 'no-store' });
+      if (!r.ok) return;
+      const { brand } = await r.json();
+      const url = safeUrl(brand?.logoUrl) || '/assets/conectek-logo.png';
+      const width = Math.max(100, Math.min(420, Number(brand?.maxWidth) || 210));
+      document.querySelectorAll('.brand-logo').forEach(img => {
+        img.src = url; img.style.maxWidth = `${width}px`;
+        img.onerror = () => { img.onerror = null; img.src = '/assets/conectek-logo.png'; };
+      });
+    } catch {}
+  }
+  loadBrandIdentity();
 
   async function askNotifyPermission(btn) {
     if (!('Notification' in window)) { if (btn) btn.textContent = '🔕 No compatible'; return; }
@@ -71,5 +88,5 @@
     if (b && changes[b.dataset.chg]) changes[b.dataset.chg](b.dataset, b);
   });
 
-  window.CRD = { $, esc, money, safeUrl, waNumber, STATUS, makeApi, beep, notify, askNotifyPermission, renderIfChanged, actions, changes };
+  window.CRD = { $, esc, money, safeUrl, waNumber, STATUS, makeApi, beep, notify, askNotifyPermission, renderIfChanged, loadBrandIdentity, configReady, get currency() { return currency; }, actions, changes };
 })();
